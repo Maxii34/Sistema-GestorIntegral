@@ -46,7 +46,7 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="/register"
+            href="/registro"
             className="text-sm font-bold px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-md transition-colors uppercase tracking-wide"
           >
             Register
