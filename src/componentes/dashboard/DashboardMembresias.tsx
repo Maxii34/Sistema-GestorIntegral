@@ -1,16 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { 
-  CreditCard, 
-  Plus, 
-  Check, 
-  Clock, 
-  Users, 
-  X 
-} from "lucide-react";
+import { CreditCard, Plus, Check, Clock, Users, X, Pencil } from "lucide-react";
 
-// Tipado del modelo de Membresía
 export interface PlanItem {
   id: string;
   nombre: string;
@@ -22,7 +14,6 @@ export interface PlanItem {
   totalSocios: number;
 }
 
-// Datos iniciales precargados
 const initialPlanes: PlanItem[] = [
   {
     id: "plan-1",
@@ -31,7 +22,11 @@ const initialPlanes: PlanItem[] = [
     duracionDias: 30,
     descripcion: "Acceso ilimitado a sala de musculación y vestuarios.",
     activa: true,
-    beneficios: ["Acceso libre a máquinas", "Seguimiento básico en sala", "Casilleros de uso diario"],
+    beneficios: [
+      "Acceso libre a máquinas",
+      "Seguimiento básico en sala",
+      "Casilleros de uso diario",
+    ],
     totalSocios: 540,
   },
   {
@@ -41,7 +36,11 @@ const initialPlanes: PlanItem[] = [
     duracionDias: 90,
     descripcion: "Ahorro del 10% trimestral con rutinas personalizadas.",
     activa: true,
-    beneficios: ["Acceso libre total", "Rutina personalizada de 3 días", "Descuento en suplementos"],
+    beneficios: [
+      "Acceso libre total",
+      "Rutina personalizada de 3 días",
+      "Descuento en suplementos",
+    ],
     totalSocios: 310,
   },
   {
@@ -51,7 +50,11 @@ const initialPlanes: PlanItem[] = [
     duracionDias: 180,
     descripcion: "Tarifa preferencial para miembros de media y larga duración.",
     activa: true,
-    beneficios: ["Acceso libre multisede", "Evaluaciones funcionales", "Pase libre para 1 invitado al mes"],
+    beneficios: [
+      "Acceso libre multisede",
+      "Evaluaciones funcionales",
+      "Pase libre para 1 invitado al mes",
+    ],
     totalSocios: 210,
   },
   {
@@ -61,10 +64,21 @@ const initialPlanes: PlanItem[] = [
     duracionDias: 365,
     descripcion: "Máxima fidelización con beneficios VIP y congelamiento.",
     activa: true,
-    beneficios: ["Congelamiento de cuota por 30 días", "Plan nutricional trimestral", "Indumentaria IronGym"],
+    beneficios: [
+      "Congelamiento de cuota por 30 días",
+      "Plan nutricional trimestral",
+      "Indumentaria IronGym",
+    ],
     totalSocios: 188,
   },
 ];
+
+const initialFormState = {
+  nombre: "",
+  descripcion: "",
+  precio: 15000,
+  duracion: 30,
+};
 
 export function DashboardMembresias({
   plansSummary,
@@ -73,36 +87,75 @@ export function DashboardMembresias({
 }) {
   const [planes, setPlanes] = useState<PlanItem[]>(initialPlanes);
   const [modalOpen, setModalOpen] = useState(false);
+  const [planEnEdicion, setPlanEnEdicion] = useState<PlanItem | null>(null);
+  const [formData, setFormData] = useState(initialFormState);
 
-  const [nuevoPlan, setNuevoPlan] = useState({
-    nombre: "",
-    descripcion: "",
-    precio: 15000,
-    duracion: 30,
-  });
+  // Apertura para nuevo plan
+  const handleOpenCrear = () => {
+    setPlanEnEdicion(null);
+    setFormData(initialFormState);
+    setModalOpen(true);
+  };
 
-  const handleCrearPlan = (e: FormEvent) => {
-    e.preventDefault();
-    if (!nuevoPlan.nombre) return;
+  // Apertura para editar un plan existente
+  const handleOpenEditar = (plan: PlanItem) => {
+    setPlanEnEdicion(plan);
+    setFormData({
+      nombre: plan.nombre,
+      descripcion: plan.descripcion,
+      precio: plan.precio,
+      duracion: plan.duracionDias,
+    });
+    setModalOpen(true);
+  };
 
-    const planCreado: PlanItem = {
-      id: `plan-${Date.now()}`,
-      nombre: nuevoPlan.nombre,
-      precio: Number(nuevoPlan.precio),
-      duracionDias: Number(nuevoPlan.duracion),
-      descripcion:
-        nuevoPlan.descripcion || "Membresía estándar para entrenamiento.",
-      activa: true,
-      beneficios: [
-        "Acceso a sala de musculación",
-        "Atención de profesores de piso",
-      ],
-      totalSocios: 0,
-    };
-
-    setPlanes((prev) => [...prev, planCreado]);
+  const handleCloseModal = () => {
     setModalOpen(false);
-    setNuevoPlan({ nombre: "", descripcion: "", precio: 15000, duracion: 30 });
+    setPlanEnEdicion(null);
+    setFormData(initialFormState);
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!formData.nombre) return;
+
+    if (planEnEdicion) {
+      // Editar plan existente (Equivalente a PUT /api/membrecia/:id)
+      setPlanes((prev) =>
+        prev.map((p) =>
+          p.id === planEnEdicion.id
+            ? {
+                ...p,
+                nombre: formData.nombre,
+                descripcion:
+                  formData.descripcion ||
+                  "Membresía estándar para entrenamiento.",
+                precio: Number(formData.precio),
+                duracionDias: Number(formData.duracion),
+              }
+            : p,
+        ),
+      );
+    } else {
+      // Crear nuevo plan (Equivalente a POST /api/membrecia)
+      const nuevo: PlanItem = {
+        id: `plan-${Date.now()}`,
+        nombre: formData.nombre,
+        precio: Number(formData.precio),
+        duracionDias: Number(formData.duracion),
+        descripcion:
+          formData.descripcion || "Membresía estándar para entrenamiento.",
+        activa: true,
+        beneficios: [
+          "Acceso a sala de musculación",
+          "Atención de profesores de piso",
+        ],
+        totalSocios: 0,
+      };
+      setPlanes((prev) => [...prev, nuevo]);
+    }
+
+    handleCloseModal();
   };
 
   const toggleEstadoPlan = (id: string) => {
@@ -124,7 +177,7 @@ export function DashboardMembresias({
           </p>
         </div>
         <button
-          onClick={() => setModalOpen(true)}
+          onClick={handleOpenCrear}
           className="inline-flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 px-4 py-2.5 text-xs font-bold text-stone-950 shadow-xs transition active:scale-95 cursor-pointer"
         >
           <Plus className="h-4 w-4" />
@@ -203,34 +256,39 @@ export function DashboardMembresias({
                 <Users className="h-3.5 w-3.5 text-stone-400" />
                 {plan.totalSocios} suscriptos
               </span>
-              <button className="text-xs font-semibold text-amber-700 hover:text-amber-800 transition">
-                Editar
+              <button
+                onClick={() => handleOpenEditar(plan)}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-800 transition cursor-pointer"
+              >
+                <Pencil className="h-3 w-3" />
+                <span>Editar</span>
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Modal de Creación */}
+      {/* Modal Unificado (Crear y Editar) */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-stone-900">
-                  Nuevo Plan de Membresía
+                  {planEnEdicion
+                    ? "Editar Plan de Membresía"
+                    : "Nuevo Plan de Membresía"}
                 </h3>
-                <p className="text-xs text-stone-500">POST /api/membrecia</p>
               </div>
               <button
-                onClick={() => setModalOpen(false)}
+                onClick={handleCloseModal}
                 className="p-1 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCrearPlan} className="mt-4 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
                   Nombre del Plan
@@ -238,9 +296,9 @@ export function DashboardMembresias({
                 <input
                   type="text"
                   placeholder="Ej: Plan Estudiantes"
-                  value={nuevoPlan.nombre}
+                  value={formData.nombre}
                   onChange={(e) =>
-                    setNuevoPlan((prev) => ({
+                    setFormData((prev) => ({
                       ...prev,
                       nombre: e.target.value,
                     }))
@@ -257,9 +315,9 @@ export function DashboardMembresias({
                 <input
                   type="text"
                   placeholder="Ej: Horario reducido de 14 a 18 hs"
-                  value={nuevoPlan.descripcion}
+                  value={formData.descripcion}
                   onChange={(e) =>
-                    setNuevoPlan((prev) => ({
+                    setFormData((prev) => ({
                       ...prev,
                       descripcion: e.target.value,
                     }))
@@ -275,9 +333,9 @@ export function DashboardMembresias({
                   </label>
                   <input
                     type="number"
-                    value={nuevoPlan.precio}
+                    value={formData.precio}
                     onChange={(e) =>
-                      setNuevoPlan((prev) => ({
+                      setFormData((prev) => ({
                         ...prev,
                         precio: Number(e.target.value),
                       }))
@@ -292,9 +350,9 @@ export function DashboardMembresias({
                   </label>
                   <input
                     type="number"
-                    value={nuevoPlan.duracion}
+                    value={formData.duracion}
                     onChange={(e) =>
-                      setNuevoPlan((prev) => ({
+                      setFormData((prev) => ({
                         ...prev,
                         duracion: Number(e.target.value),
                       }))
@@ -307,7 +365,7 @@ export function DashboardMembresias({
               <div className="flex justify-end gap-2 pt-3 border-t border-stone-100">
                 <button
                   type="button"
-                  onClick={() => setModalOpen(false)}
+                  onClick={handleCloseModal}
                   className="px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 rounded-lg transition cursor-pointer"
                 >
                   Cancelar
@@ -316,7 +374,7 @@ export function DashboardMembresias({
                   type="submit"
                   className="px-4 py-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-stone-950 rounded-lg transition cursor-pointer"
                 >
-                  Guardar Membresía
+                  {planEnEdicion ? "Guardar Cambios" : "Guardar Membresía"}
                 </button>
               </div>
             </form>
