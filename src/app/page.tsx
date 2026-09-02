@@ -80,7 +80,7 @@ export default function Home() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-widest text-amber-300">
               <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>IronGym Management</span>
+              <span>IronGym </span>
             </div>
 
             <h1 className="mt-6 text-4xl font-black uppercase tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.08]">
@@ -97,7 +97,7 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/registro"
-                className="inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-500 px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-stone-950 shadow-[0_4px_25px_rgba(245,158,11,0.25)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_6px_30px_rgba(245,158,11,0.4)] active:scale-95"
+                className="inline-flex items-center gap-2.5 rounded-full bg-linear-to-r from-amber-400 via-amber-500 to-amber-500 px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-stone-950 shadow-[0_4px_25px_rgba(245,158,11,0.25)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_6px_30px_rgba(245,158,11,0.4)] active:scale-95"
               >
                 <span>Registrar Administrador</span>
                 <ArrowRight className="h-4 w-4" />
@@ -141,10 +141,6 @@ export default function Home() {
                   Monitoreo en Tiempo Real
                 </span>
               </div>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Sistema Online
-              </span>
             </div>
 
             <div className="mt-6 space-y-3.5">
@@ -153,7 +149,7 @@ export default function Home() {
                 return (
                   <div
                     key={stat.label}
-                    className="flex items-center justify-between rounded-xl border border-stone-800/70 bg-[#24211d]/70 p-4 transition-all duration-200 hover:border-amber-400/30 hover:bg-[#282420]"
+                    className="flex items-center justify-between rounded-xl border border-stone-800/70 bg-[#24211d]/70 p-4 transition-all duration-800 hover:border-amber-500/60 hover:bg-[#282420]"
                   >
                     <div className="flex items-center gap-3.5">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-stone-700/60 bg-stone-900/60 text-stone-300">
@@ -179,7 +175,7 @@ export default function Home() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-stone-800/80 flex items-center justify-between text-xs text-stone-400">
-              <span>Cierre cron medianoche:</span>
+              <span>Cierre medianoche:</span>
               <span className="font-mono text-stone-300">00:00 ART</span>
             </div>
           </div>
@@ -198,28 +194,16 @@ export default function Home() {
             </h2>
           </div>
         </div>
-
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {planes.map((plan) => (
             <div
               key={plan.nombre}
-              className={`relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 ${
-                plan.popular
-                  ? "border-amber-400/50 bg-[#221e1a] shadow-[0_10px_35px_rgba(245,158,11,0.1)]"
-                  : "border-stone-800/80 bg-[#1c1a17] hover:border-stone-700"
-              }`}
+              className="relative flex flex-col justify-between rounded-2xl border border-stone-800/80 bg-[#1c1a17] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-stone-700"
             >
               <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
-                    {plan.nombre}
-                  </span>
-                  {plan.popular && (
-                    <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                      Recomendado
-                    </span>
-                  )}
-                </div>
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
+                  {plan.nombre}
+                </span>
                 <p className="mt-5 text-3xl font-black text-white font-mono">
                   {plan.precio}
                 </p>
