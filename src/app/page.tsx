@@ -23,7 +23,12 @@ export default async function Home() {
     for (const key of keys) {
       const value = resumenData[key];
       if (typeof value === "number") return value;
-      if (typeof value === "string" && value.trim() !== "" && !Number.isNaN(Number(value))) return Number(value);
+      if (
+        typeof value === "string" &&
+        value.trim() !== "" &&
+        !Number.isNaN(Number(value))
+      )
+        return Number(value);
     }
     return 0;
   };
@@ -31,22 +36,71 @@ export default async function Home() {
     ? resumenData.sociosPorEstado
     : [];
   const activos = sociosPorEstado.find(
-    (item) => typeof item === "object" && item !== null && String(item._id).toLowerCase() === "activo",
+    (item) =>
+      typeof item === "object" &&
+      item !== null &&
+      String(item._id).toLowerCase() === "activo",
   );
-  const ingresosMes = typeof resumenData.ingresosMesActual === "object" && resumenData.ingresosMesActual !== null
-    ? resumenData.ingresosMesActual as Record<string, unknown>
-    : {};
+  const ingresosMes =
+    typeof resumenData.ingresosMesActual === "object" &&
+    resumenData.ingresosMesActual !== null
+      ? (resumenData.ingresosMesActual as Record<string, unknown>)
+      : {};
   const moneda = (value: number) => `$${value.toLocaleString("es-AR")}`;
   const stats = [
-    { label: "Socios activos", value: String(activos && typeof activos === "object" && "total" in activos ? activos.total : numero("sociosActivos", "usuariosActivos")), detail: "Datos del backend", icon: Users, color: "text-emerald-400" },
-    { label: "Ingresos del mes", value: moneda(Number(ingresosMes.total ?? numero("ingresosMes", "totalMes", "recaudacionMes"))), detail: "Datos del backend", icon: DollarSign, color: "text-amber-400" },
-    { label: "Ingresos hoy", value: String(numero("ingresosHoy", "ingresosDia", "accesosHoy")), detail: "Datos del backend", icon: LogIn, color: "text-blue-400" },
-    { label: "Membresías vencidas", value: String(numero("membresiasVencidas", "vencidos", "usuariosVencidos")), detail: "Datos del backend", icon: AlertTriangle, color: "text-rose-400" },
+    {
+      label: "Socios activos",
+      value: String(
+        activos && typeof activos === "object" && "total" in activos
+          ? activos.total
+          : numero("sociosActivos", "usuariosActivos"),
+      ),
+      detail: "Datos del Sistema",
+      icon: Users,
+      color: "text-emerald-400",
+    },
+    {
+      label: "Ingresos del mes",
+      value: moneda(
+        Number(
+          ingresosMes.total ??
+            numero("ingresosMes", "totalMes", "recaudacionMes"),
+        ),
+      ),
+      detail: "Datos del Sistema",
+      icon: DollarSign,
+      color: "text-amber-400",
+    },
+    {
+      label: "Ingresos hoy",
+      value: String(numero("ingresosHoy", "ingresosDia", "accesosHoy")),
+      detail: "Datos del Sistema",
+      icon: LogIn,
+      color: "text-blue-400",
+    },
+    {
+      label: "Membresías vencidas",
+      value: String(
+        numero("membresiasVencidas", "vencidos", "usuariosVencidos"),
+      ),
+      detail: "Datos del Sistema",
+      icon: AlertTriangle,
+      color: "text-rose-400",
+    },
   ];
   const planes = planesData.map((plan) => ({
+    id: String(plan._id ?? plan.id ?? plan.nombre ?? "plan"),
     nombre: String(plan.nombre ?? ""),
     precio: moneda(Number(plan.precio ?? 0)),
     detalle: String(plan.descripcion ?? ""),
+    duracionDias: Number(plan.duracionDias ?? plan.duracion ?? 0),
+    beneficios: Array.isArray(plan.beneficios)
+      ? (plan.beneficios as unknown[]).filter(
+          (beneficio: unknown): beneficio is string =>
+            typeof beneficio === "string",
+        )
+      : [],
+    activa: plan.activa !== false,
   }));
 
   return (
@@ -92,25 +146,41 @@ export default async function Home() {
               </Link>
             </div>
 
-            {/* Micro métricas destacadas */}
+            {/* Características destacadas */}
             <div className="mt-12 grid grid-cols-3 gap-3 sm:gap-4 border-t border-stone-800/80 pt-8">
               {[
-                { label: "Tasa de retención", value: `${numero("retencion", "tasaRetencion")}%` },
-                { label: "Renovaciones mes", value: String(numero("renovacionesMes", "renovaciones")) },
-                { label: "Nuevos socios", value: String(numero("nuevosSocios", "altasMes")) },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-xl border border-stone-800/80 bg-[#1f1c18]/60 p-3.5 backdrop-blur-sm"
-                >
-                  <p className="text-xl sm:text-2xl font-black text-white font-mono">
-                    {item.value}
-                  </p>
-                  <p className="mt-1 text-[11px] font-medium tracking-wide text-stone-400">
-                    {item.label}
-                  </p>
-                </div>
-              ))}
+                {
+                  label: "Sistema Intuitivo",
+                  desc: "Fácil de usar",
+                  icon: CheckCircle2,
+                },
+                {
+                  label: "Escalabilidad",
+                  desc: "Crece con tu gym",
+                  icon: TrendingUp,
+                },
+                {
+                  label: "Datos Seguros",
+                  desc: "Privacidad total",
+                  icon: ShieldCheck,
+                },
+              ].map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <div
+                    key={item.label}
+                    className="flex flex-col items-start justify-center rounded-xl border border-stone-800/80 bg-[#1f1c18]/60 p-3.5 backdrop-blur-sm"
+                  >
+                    <IconComponent className="mb-2 h-5 w-5 text-amber-400" />
+                    <p className="text-sm sm:text-base font-bold text-white">
+                      {item.label}
+                    </p>
+                    <p className="mt-0.5 text-[11px] font-medium tracking-wide text-stone-400">
+                      {item.desc}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -179,25 +249,41 @@ export default async function Home() {
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {planes.map((plan) => (
             <div
-              key={plan.nombre}
+              key={plan.id}
               className="relative flex flex-col justify-between rounded-2xl border border-stone-800/80 bg-[#1c1a17] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-stone-700"
             >
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
-                  {plan.nombre}
-                </span>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
+                    {plan.nombre}
+                  </span>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${plan.activa ? "text-emerald-400" : "text-stone-500"}`}>
+                    {plan.activa ? "Disponible" : "No disponible"}
+                  </span>
+                </div>
                 <p className="mt-5 text-3xl font-black text-white font-mono">
                   {plan.precio}
+                </p>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                  {plan.duracionDias} días
                 </p>
                 <p className="mt-3 text-sm text-stone-300 leading-relaxed">
                   {plan.detalle}
                 </p>
+                {plan.beneficios.length > 0 && (
+                  <ul className="mt-5 space-y-2 border-t border-stone-800/60 pt-4">
+                    {plan.beneficios.map((beneficio, index) => (
+                      <li key={`${plan.id}-${index}`} className="flex gap-2 text-xs text-stone-300">
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+                        <span>{beneficio}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
-              <div className="mt-8 pt-6 border-t border-stone-800/60">
-                <button className="w-full rounded-xl border border-stone-700/80 bg-stone-900/80 py-2.5 text-xs font-bold uppercase tracking-wider text-stone-200 transition-all duration-200 hover:border-amber-400/60 hover:bg-stone-800 hover:text-amber-300 active:scale-95">
-                  Ver Detalles
-                </button>
+              <div className="mt-8 border-t border-stone-800/60 pt-6 text-xs text-stone-500">
+                {plan.activa ? "Membresía vigente" : "Membresía pausada"}
               </div>
             </div>
           ))}

@@ -6,6 +6,7 @@ export type MembresiaPayload = {
   duracion?: number;
   duracionDias?: number;
   descripcion?: string;
+  beneficios?: string[];
   activa?: boolean;
 };
 
@@ -59,5 +60,12 @@ export async function actualizarMembresia(id: string, payload: MembresiaPayload,
     method: 'PUT',
     headers: getAuthHeaders(token),
     body: JSON.stringify(payload),
+  });
+}
+
+export async function eliminarMembresia(id: string, token?: string | null) {
+  return apiRequest<Record<string, unknown>>(`/api/membrecia/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(token),
   });
 }

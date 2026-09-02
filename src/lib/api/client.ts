@@ -6,6 +6,16 @@ export type ApiErrorPayload = {
   error?: string;
 };
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 async function parseJson<T>(response: Response): Promise<T> {
   try {
     return (await response.json()) as T;
@@ -38,7 +48,7 @@ export async function apiRequest<T>(
       (data as ApiErrorPayload)?.error ??
       "No se pudo completar la solicitud.";
 
-    throw new Error(message);
+    throw new ApiError(message, response.status);
   }
 
   return data as T;

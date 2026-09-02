@@ -34,6 +34,48 @@ interface RespuestaIngreso {
   };
 }
 
+const obtenerMensajeIngreso = (error: unknown) => {
+  const mensaje = error instanceof Error ? error.message : "";
+  const mensajeNormalizado = mensaje.toLowerCase();
+
+  if (
+    mensajeNormalizado.includes("no existe") ||
+    mensajeNormalizado.includes("no pertenece") ||
+    mensajeNormalizado.includes("dni")
+  ) {
+    return {
+      titulo: "Socio no encontrado",
+      mensaje: "No existe un socio registrado con ese DNI.",
+      icono: "warning" as const,
+    };
+  }
+
+  if (
+    mensajeNormalizado.includes("expirada") ||
+    mensajeNormalizado.includes("membres")
+  ) {
+    return {
+      titulo: "Membresía vencida",
+      mensaje: "La membresía está vencida. Debe renovarse antes de ingresar.",
+      icono: "warning" as const,
+    };
+  }
+
+  if (mensajeNormalizado.includes("activo")) {
+    return {
+      titulo: "Acceso inactivo",
+      mensaje: "El socio no tiene habilitado el acceso al gimnasio.",
+      icono: "warning" as const,
+    };
+  }
+
+  return {
+    titulo: "No se pudo registrar el ingreso",
+    mensaje: mensaje || "No se pudo conectar con el servidor. Intentá nuevamente.",
+    icono: "error" as const,
+  };
+};
+
 export default function IngresoPage() {
   const [dni, setDni] = useState("");
   const [loading, setLoading] = useState(false);
@@ -96,12 +138,17 @@ export default function IngresoPage() {
         timer: 1800,
         showConfirmButton: false,
       });
-    } catch {
-      await Swal.fire({ icon: "error", title: "No se pudo registrar el ingreso", text: "Verificá la conexión con el servidor." });
+    } catch (error) {
+      const resultado = obtenerMensajeIngreso(error);
+      await Swal.fire({
+        icon: resultado.icono,
+        title: resultado.titulo,
+        text: resultado.mensaje,
+      });
       setData({
         ok: false,
         acceso: false,
-        mensaje: "Error de red al conectar con el servidor de molinetes.",
+        mensaje: resultado.mensaje,
       });
     } finally {
       setLoading(false);

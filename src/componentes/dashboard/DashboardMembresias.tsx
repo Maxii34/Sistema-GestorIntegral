@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import {
   actualizarMembresia,
   crearMembresia,
+  eliminarMembresia,
   getMembresias,
 } from "@/lib/api";
 
@@ -25,6 +26,7 @@ const initialFormState = {
   descripcion: "",
   precio: 15000,
   duracion: 30,
+  beneficios: [] as string[],
 };
 
 const toPlan = (raw: Record<string, unknown>): PlanItem => ({
@@ -77,6 +79,7 @@ export function DashboardMembresias() {
       descripcion: plan.descripcion,
       precio: plan.precio,
       duracion: plan.duracionDias,
+      beneficios: plan.beneficios,
     });
     setModalOpen(true);
   };
@@ -99,6 +102,7 @@ export function DashboardMembresias() {
         precio: Number(formData.precio),
         duracionDias: Number(formData.duracion),
         duracion: Number(formData.duracion),
+        beneficios: formData.beneficios,
       };
 
       if (planEnEdicion) {
@@ -141,6 +145,7 @@ export function DashboardMembresias() {
           precio: plan.precio,
           duracion: plan.duracionDias,
           duracionDias: plan.duracionDias,
+          beneficios: plan.beneficios,
           activa: !plan.activa,
         },
         token,
@@ -150,6 +155,38 @@ export function DashboardMembresias() {
     } catch (toggleError) {
       await Swal.fire({ icon: "error", title: "No se pudo actualizar", text: toggleError instanceof Error ? toggleError.message : "Error del servidor." });
       setError(toggleError instanceof Error ? toggleError.message : "No se pudo actualizar el estado.");
+    }
+  };
+
+  const eliminarPlan = async (plan: PlanItem) => {
+    const confirmacion = await Swal.fire({
+      icon: "warning",
+      title: "¿Eliminar membresía?",
+      text: `Se eliminará ${plan.nombre} permanentemente.`,
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#e11d48",
+    });
+    if (!confirmacion.isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await eliminarMembresia(plan.id, token);
+      await cargarPlanes();
+      await Swal.fire({
+        icon: "success",
+        title: "Membresía eliminada",
+        timer: 1600,
+        showConfirmButton: false,
+      });
+    } catch (deleteError) {
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo eliminar",
+        text: deleteError instanceof Error ? deleteError.message : "Error del servidor.",
+      });
+      setError(deleteError instanceof Error ? deleteError.message : "No se pudo eliminar la membresía.");
     }
   };
 
@@ -257,6 +294,16 @@ export function DashboardMembresias() {
                 <Pencil className="h-3 w-3" />
                 <span>Editar</span>
               </button>
+              <button
+                type="button"
+                onClick={() => void eliminarPlan(plan)}
+                title="Eliminar membresía"
+                aria-label={`Eliminar ${plan.nombre}`}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 transition cursor-pointer"
+              >
+                <X className="h-3.5 w-3.5" />
+                <span>Eliminar</span>
+              </button>
             </div>
           </div>
         ))}
@@ -354,6 +401,27 @@ export function DashboardMembresias() {
                     className="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm font-mono text-stone-900 focus:border-amber-500 focus:outline-none"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Beneficios (uno por línea)
+                </label>
+                <textarea
+                  value={formData.beneficios.join("\n")}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      beneficios: e.target.value
+                        .split("\n")
+                        .map((beneficio) => beneficio.trim())
+                        .filter(Boolean),
+                    }))
+                  }
+                  placeholder={"Acceso al gimnasio\nRutinas personalizadas\nEntrenador personal"}
+                  rows={4}
+                  className="w-full resize-y rounded-xl border border-stone-200 px-3 py-2 text-sm text-stone-900 focus:border-amber-500 focus:outline-none"
+                />
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-stone-100">
