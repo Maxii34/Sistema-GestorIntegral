@@ -4,7 +4,9 @@ import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import DashboardSidebar from "@/componentes/dashboard/DashboardSidebar";
 import DashboardResumen from "@/componentes/dashboard/DashboardResumen";
 import DashboardSocios, { type Socio } from "@/componentes/dashboard/DashboardSocios";
-import { DashboardIngresos, DashboardMembresias, DashboardConfiguracion } from "@/componentes/dashboard/DashboardExtras";
+import { DashboardIngresos } from "@/componentes/dashboard/DashboardExtras";
+import { DashboardConfiguracion } from "@/componentes/dashboard/DashboardConfig";
+import { DashboardMembresias } from "@/componentes/dashboard/DashboardMembresias";
 import { Users, DoorOpen, DollarSign, AlertCircle } from "lucide-react";
 
 const cards = [
