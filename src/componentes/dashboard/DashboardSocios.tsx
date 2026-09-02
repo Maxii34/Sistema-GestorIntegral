@@ -23,6 +23,7 @@ export type Socio = {
   plan: string;
   estado: "Activo" | "Suspendido" | "Inactivo";
   vencimiento: string;
+  pagoMensual: number;
 };
 
 type DashboardSociosProps = {

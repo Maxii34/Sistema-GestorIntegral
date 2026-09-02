@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { CreditCard, Plus, Check, Clock, Users, X, Pencil } from "lucide-react";
+import {
+  actualizarMembresia,
+  crearMembresia,
+  getMembresias,
+} from "@/lib/api";
 
 export interface PlanItem {
   id: string;
@@ -14,65 +19,6 @@ export interface PlanItem {
   totalSocios: number;
 }
 
-const initialPlanes: PlanItem[] = [
-  {
-    id: "plan-1",
-    nombre: "Plan Mensual",
-    precio: 15000,
-    duracionDias: 30,
-    descripcion: "Acceso ilimitado a sala de musculación y vestuarios.",
-    activa: true,
-    beneficios: [
-      "Acceso libre a máquinas",
-      "Seguimiento básico en sala",
-      "Casilleros de uso diario",
-    ],
-    totalSocios: 540,
-  },
-  {
-    id: "plan-2",
-    nombre: "Plan Trimestral",
-    precio: 38000,
-    duracionDias: 90,
-    descripcion: "Ahorro del 10% trimestral con rutinas personalizadas.",
-    activa: true,
-    beneficios: [
-      "Acceso libre total",
-      "Rutina personalizada de 3 días",
-      "Descuento en suplementos",
-    ],
-    totalSocios: 310,
-  },
-  {
-    id: "plan-3",
-    nombre: "Plan Semestral",
-    precio: 70000,
-    duracionDias: 180,
-    descripcion: "Tarifa preferencial para miembros de media y larga duración.",
-    activa: true,
-    beneficios: [
-      "Acceso libre multisede",
-      "Evaluaciones funcionales",
-      "Pase libre para 1 invitado al mes",
-    ],
-    totalSocios: 210,
-  },
-  {
-    id: "plan-4",
-    nombre: "Plan Anual",
-    precio: 120000,
-    duracionDias: 365,
-    descripcion: "Máxima fidelización con beneficios VIP y congelamiento.",
-    activa: true,
-    beneficios: [
-      "Congelamiento de cuota por 30 días",
-      "Plan nutricional trimestral",
-      "Indumentaria IronGym",
-    ],
-    totalSocios: 188,
-  },
-];
-
 const initialFormState = {
   nombre: "",
   descripcion: "",
@@ -80,15 +26,40 @@ const initialFormState = {
   duracion: 30,
 };
 
-export function DashboardMembresias({
-  plansSummary,
-}: {
-  plansSummary?: Array<{ nombre: string; total: number; porcentaje: number }>;
-}) {
-  const [planes, setPlanes] = useState<PlanItem[]>(initialPlanes);
+const toPlan = (raw: Record<string, unknown>): PlanItem => ({
+  id: String(raw.id ?? raw._id ?? ""),
+  nombre: String(raw.nombre ?? "Membresía sin nombre"),
+  precio: Number(raw.precio ?? raw.pagoMensual ?? 0),
+  duracionDias: Number(raw.duracionDias ?? raw.duracion ?? 0),
+  descripcion: String(raw.descripcion ?? ""),
+  activa: raw.activa !== false,
+  beneficios: Array.isArray(raw.beneficios)
+    ? raw.beneficios.map(String)
+    : [],
+  totalSocios: Number(raw.totalSocios ?? raw.usuariosActivos ?? 0),
+});
+
+export function DashboardMembresias() {
+  const [planes, setPlanes] = useState<PlanItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [planEnEdicion, setPlanEnEdicion] = useState<PlanItem | null>(null);
   const [formData, setFormData] = useState(initialFormState);
+  const [error, setError] = useState<string | null>(null);
+
+  const cargarPlanes = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const data = await getMembresias(token);
+      setPlanes(data.map(toPlan));
+      setError(null);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "No se pudieron cargar las membresías.");
+    }
+  };
+
+  useEffect(() => {
+    void cargarPlanes();
+  }, []);
 
   // Apertura para nuevo plan
   const handleOpenCrear = () => {
@@ -115,57 +86,61 @@ export function DashboardMembresias({
     setFormData(initialFormState);
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!formData.nombre) return;
+    if (!formData.nombre || formData.precio <= 0 || formData.duracion <= 0) return;
 
-    if (planEnEdicion) {
-      // Editar plan existente (Equivalente a PUT /api/membrecia/:id)
-      setPlanes((prev) =>
-        prev.map((p) =>
-          p.id === planEnEdicion.id
-            ? {
-                ...p,
-                nombre: formData.nombre,
-                descripcion:
-                  formData.descripcion ||
-                  "Membresía estándar para entrenamiento.",
-                precio: Number(formData.precio),
-                duracionDias: Number(formData.duracion),
-              }
-            : p,
-        ),
-      );
-    } else {
-      // Crear nuevo plan (Equivalente a POST /api/membrecia)
-      const nuevo: PlanItem = {
-        id: `plan-${Date.now()}`,
+    try {
+      const token = localStorage.getItem("token");
+      const payload = {
         nombre: formData.nombre,
+        descripcion: formData.descripcion,
         precio: Number(formData.precio),
         duracionDias: Number(formData.duracion),
-        descripcion:
-          formData.descripcion || "Membresía estándar para entrenamiento.",
-        activa: true,
-        beneficios: [
-          "Acceso a sala de musculación",
-          "Atención de profesores de piso",
-        ],
-        totalSocios: 0,
+        duracion: Number(formData.duracion),
       };
-      setPlanes((prev) => [...prev, nuevo]);
-    }
 
-    handleCloseModal();
+      if (planEnEdicion) {
+        await actualizarMembresia(planEnEdicion.id, payload, token);
+      } else {
+        await crearMembresia(payload, token);
+      }
+
+      await cargarPlanes();
+      setError(null);
+      handleCloseModal();
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "No se pudo guardar la membresía.");
+    }
   };
 
-  const toggleEstadoPlan = (id: string) => {
-    setPlanes((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, activa: !p.activa } : p)),
-    );
+  const toggleEstadoPlan = async (plan: PlanItem) => {
+    try {
+      const token = localStorage.getItem("token");
+      await actualizarMembresia(
+        plan.id,
+        {
+          nombre: plan.nombre,
+          precio: plan.precio,
+          duracion: plan.duracionDias,
+          duracionDias: plan.duracionDias,
+          activa: !plan.activa,
+        },
+        token,
+      );
+      await cargarPlanes();
+    } catch (toggleError) {
+      setError(toggleError instanceof Error ? toggleError.message : "No se pudo actualizar el estado.");
+    }
   };
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          {error}
+        </div>
+      )}
       {/* Cabecera */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-stone-200 pb-5">
         <div>
@@ -203,7 +178,7 @@ export function DashboardMembresias({
                   {plan.duracionDias} días
                 </span>
                 <button
-                  onClick={() => toggleEstadoPlan(plan.id)}
+                  onClick={() => void toggleEstadoPlan(plan)}
                   title={plan.activa ? "Desactivar plan" : "Activar plan"}
                   className="text-stone-400 hover:text-stone-700 transition cursor-pointer"
                 >

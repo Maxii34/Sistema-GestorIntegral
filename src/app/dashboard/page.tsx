@@ -12,33 +12,21 @@ import {
   crearUsuario,
   eliminarUsuario,
   getUsuarios,
+  getResumenDashboard,
   renovarUsuario,
 } from "@/lib/api";
 
-const defaultCards = [
-  { label: "Socios activos", value: "1.248", detail: "+8% este mes", icon: Users, tone: "amber" },
-  { label: "Ingresos del mes", value: "$185.400", detail: "Renovaciones cerradas", icon: DollarSign, tone: "emerald" },
-  { label: "Membresías vencidas", value: "19", detail: "Requieren renovación", icon: AlertCircle, tone: "rose" },
-  { label: "Ingresos hoy", value: "42", detail: "Molinete activo", icon: DoorOpen, tone: "sky" },
-];
+const PLANES_VALIDOS = ["mensual", "trimestral", "semestral", "anual"] as const;
 
-const recentEntries = [
-  { nombre: "Ana Ponce", dni: "40123456", ingreso: "08:45", estado: "Activo" },
-  { nombre: "Tomás Ruiz", dni: "37654892", ingreso: "09:10", estado: "Activo" },
-  { nombre: "Lucía Méndez", dni: "25258444", ingreso: "09:28", estado: "Pendiente" },
-  { nombre: "Sergio Díaz", dni: "41333456", ingreso: "10:03", estado: "Activo" },
-];
-
-const plansSummary = [
-  { nombre: "Mensual", total: 540, porcentaje: 43 },
-  { nombre: "Trimestral", total: 310, porcentaje: 25 },
-  { nombre: "Semestral", total: 210, porcentaje: 17 },
-  { nombre: "Anual", total: 188, porcentaje: 15 },
-];
+const normalizarPlan = (plan: string): string => {
+  const limpio = plan.toLowerCase().trim();
+  return PLANES_VALIDOS.find((p) => limpio.includes(p)) ?? "mensual";
+};
 
 const toEstado = (value?: string | boolean | null): Socio["estado"] => {
-  if (value === false || value === "Inactivo") return "Inactivo";
-  if (value === "Suspendido") return "Suspendido";
+  const estado = typeof value === "string" ? value.toLowerCase() : value;
+  if (estado === false || estado === "inactivo") return "Inactivo";
+  if (estado === "suspendido") return "Suspendido";
   return "Activo";
 };
 
@@ -58,9 +46,11 @@ const toSocio = (raw: Record<string, unknown>): Socio => {
     apellido,
     dni: String(raw.dni ?? ""),
     telefono: String(raw.telefono ?? "-"),
-    plan: String(raw.plan ?? raw.tipoMembresia ?? raw.membresia ?? "Mensual"),
+    plan: String(raw.plan ?? raw.tipoMembresia ?? raw.membresia ?? "Sin plan"),
     estado: toEstado(String(raw.estado ?? raw.status ?? (raw.activo === false ? "Inactivo" : "Activo"))),
     vencimiento: formatearFecha(fecha),
+    // 👇 nuevo: ajustá "pagoMensual"/"cuota" al nombre real que devuelva tu backend
+    pagoMensual: Number(raw.pagoMensual ?? raw.cuota ?? raw.monto ?? 0),
   };
 };
 
@@ -68,7 +58,7 @@ export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState("socios");
   const [socios, setSocios] = useState<Socio[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [cards, setCards] = useState(defaultCards);
+  const [resumen, setResumen] = useState<Record<string, unknown>>({});
   const [sociosError, setSociosError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
@@ -96,6 +86,72 @@ export default function DashboardPage() {
     [socios],
   );
 
+  const plansSummary = useMemo(() => {
+    const totals = new Map<string, number>();
+    socios.forEach((socio) => {
+      const nombre = socio.plan || "Sin plan";
+      totals.set(nombre, (totals.get(nombre) ?? 0) + 1);
+    });
+    const totalSociosConPlan = socios.length || 1;
+
+    return Array.from(totals, ([nombre, total]) => ({
+      nombre,
+      total,
+      porcentaje: Math.round((total / totalSociosConPlan) * 100),
+    }));
+  }, [socios]);
+
+  const obtenerNumero = (...keys: string[]) => {
+    for (const key of keys) {
+      const value = resumen[key];
+      if (typeof value === "number") return value;
+      if (typeof value === "string" && value.trim() !== "") {
+        const number = Number(value);
+        if (!Number.isNaN(number)) return number;
+      }
+    }
+    return 0;
+  };
+
+  const sociosPorEstado = Array.isArray(resumen.sociosPorEstado)
+    ? resumen.sociosPorEstado
+    : [];
+  const activosDesdeResumen = sociosPorEstado.find(
+    (item) => typeof item === "object" && item !== null && String(item._id).toLowerCase() === "activo",
+  );
+  const ingresosMesActual =
+    typeof resumen.ingresosMesActual === "object" && resumen.ingresosMesActual !== null
+      ? resumen.ingresosMesActual as Record<string, unknown>
+      : {};
+  const planesDesdeResumen = Array.isArray(resumen.distribucionPlanes)
+    ? resumen.distribucionPlanes
+        .filter((plan): plan is Record<string, unknown> => typeof plan === "object" && plan !== null)
+        .map((plan) => ({
+          nombre: String(plan._id ?? "Sin plan"),
+          total: Number(plan.total ?? 0),
+          porcentaje: Math.round((Number(plan.total ?? 0) / (socios.length || 1)) * 100),
+        }))
+    : [];
+
+  const formatearMoneda = (value: number) =>
+    `$${value.toLocaleString("es-AR")}`;
+
+  const cards = [
+    { label: "Socios activos", value: String(activosDesdeResumen && typeof activosDesdeResumen === "object" && "total" in activosDesdeResumen ? activosDesdeResumen.total : sociosActivos), detail: "Datos del padrón", icon: Users, tone: "amber" },
+    { label: "Ingresos del mes", value: formatearMoneda(Number(ingresosMesActual.total ?? obtenerNumero("ingresosMes", "totalMes", "recaudacionMes"))), detail: "Datos del resumen", icon: DollarSign, tone: "emerald" },
+    { label: "Membresías vencidas", value: String(obtenerNumero("membresiasVencidas", "vencidos", "usuariosVencidos")), detail: "Datos del resumen", icon: AlertCircle, tone: "rose" },
+    { label: "Ingresos hoy", value: String(obtenerNumero("ingresosHoy", "ingresosDia", "accesosHoy")), detail: "Datos del resumen", icon: DoorOpen, tone: "sky" },
+  ];
+
+  const cargarResumen = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      setResumen(await getResumenDashboard(token));
+    } catch (error) {
+      setSociosError(error instanceof Error ? error.message : "No se pudo cargar el resumen.");
+    }
+  };
+
   const cargarSocios = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -110,6 +166,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       void cargarSocios();
+      void cargarResumen();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
@@ -117,7 +174,10 @@ export default function DashboardPage() {
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "pagoMensual" ? (value === "" ? 0 : Number(value)) : value,
+    }));
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -129,7 +189,11 @@ export default function DashboardPage() {
 
     try {
       const token = localStorage.getItem("token");
-      await crearUsuario(form, token);
+      await crearUsuario({
+        ...form,
+        tipoMembresia: form.plan,
+        estado: form.estado.toLowerCase(),
+      }, token);
       await cargarSocios();
       setForm({
         nombre: "",
@@ -191,8 +255,8 @@ export default function DashboardPage() {
       return (
         <DashboardResumen
           cards={cards}
-          recentEntries={recentEntries}
-          plansSummary={plansSummary}
+          recentEntries={[]}
+          plansSummary={planesDesdeResumen.length ? planesDesdeResumen : plansSummary}
           sociosActivos={sociosActivos}
           socios={socios}
           onOpenIngresos={() => setActiveSection("ingresos")}
@@ -211,35 +275,35 @@ export default function DashboardPage() {
           <DashboardSocios
             socios={socios}
             sociosActivos={sociosActivos}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          form={form}
-          onFormChange={handleChange}
-          onFormReset={() =>
-            setForm({
-              nombre: "",
-              apellido: "",
-              dni: "",
-              telefono: "",
-              pagoMensual: 15000,
-              plan: "mensual",
-              estado: "Activo",
-            })
-          }
-          onSubmit={handleSubmit}
-          onDeleteSocio={handleDeleteSocio}
-          onOpenRenovar={(socio) => {
-            setRenovarModal({ open: true, socio });
-            setRenovacionForm({
-              pagoMensual: 15000,
-              tipoMembresia: socio.plan.toLowerCase(),
-            });
-          }}
-          renovacionForm={renovacionForm}
-          onRenovacionFormChange={handleRenovacionChange}
-          renovarModal={renovarModal}
-          onCloseRenovarModal={() => setRenovarModal({ open: false, socio: null })}
-          onRenovarSubmit={handleRenovarSubmit}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            form={form}
+            onFormChange={handleChange}
+            onFormReset={() =>
+              setForm({
+                nombre: "",
+                apellido: "",
+                dni: "",
+                telefono: "",
+                pagoMensual: 15000,
+                plan: "mensual",
+                estado: "Activo",
+              })
+            }
+            onSubmit={handleSubmit}
+            onDeleteSocio={handleDeleteSocio}
+            onOpenRenovar={(socio) => {
+              setRenovarModal({ open: true, socio });
+              setRenovacionForm({
+                pagoMensual: socio.pagoMensual,
+                tipoMembresia: normalizarPlan(socio.plan),
+              });
+            }}
+            renovacionForm={renovacionForm}
+            onRenovacionFormChange={handleRenovacionChange}
+            renovarModal={renovarModal}
+            onCloseRenovarModal={() => setRenovarModal({ open: false, socio: null })}
+            onRenovarSubmit={handleRenovarSubmit}
           />
         </div>
       );
@@ -250,7 +314,7 @@ export default function DashboardPage() {
     }
 
     if (activeSection === "membresias") {
-      return <DashboardMembresias plansSummary={plansSummary} />;
+      return <DashboardMembresias />;
     }
 
     return <DashboardConfiguracion />;

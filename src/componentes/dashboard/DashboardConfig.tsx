@@ -1,11 +1,8 @@
 import { useState } from "react";
 import {
   Play,
-  Users2,
   CheckCircle2,
   RefreshCw,
-  ShieldCheck,
-  UserCheck,
 } from "lucide-react";
 import { verificarVencimientos } from "@/lib/api";
 
@@ -88,56 +85,18 @@ export function DashboardConfiguracion() {
 
         <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-stone-100 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-blue-800">
-                <Users2 className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-stone-900">
-                  Operadores de Sistema
-                </h2>
-                <p className="text-xs text-stone-500">
-                  Cuentas habilitadas para cobros, inscripciones y recepción.
-                </p>
-              </div>
+            <div>
+              <h2 className="text-base font-bold text-stone-900">
+                Operadores de Sistema
+              </h2>
+              <p className="text-xs text-stone-500">
+                La API de administradores no expone aún un listado para esta sección.
+              </p>
             </div>
-            <span className="text-xs font-semibold text-stone-500">2 cuentas registradas</span>
           </div>
 
-          <div className="divide-y divide-stone-100">
-            <div className="py-3.5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-100 text-stone-700">
-                  <ShieldCheck className="h-4 w-4 text-amber-600" />
-                </div>
-                <div>
-                  <span className="font-semibold text-stone-900 block text-sm">
-                    Administrador Principal
-                  </span>
-                  <span className="text-xs text-stone-500">admin@forcegym.com</span>
-                </div>
-              </div>
-              <span className="text-xs font-mono font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                superadmin
-              </span>
-            </div>
-
-            <div className="py-3.5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-100 text-stone-700">
-                  <UserCheck className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <span className="font-semibold text-stone-900 block text-sm">
-                    Recepción Mañana
-                  </span>
-                  <span className="text-xs text-stone-500">recepcion@forcegym.com</span>
-                </div>
-              </div>
-              <span className="text-xs font-mono font-bold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-full">
-                moderador
-              </span>
-            </div>
+          <div className="rounded-xl border border-stone-100 bg-stone-50 px-4 py-6 text-center text-xs text-stone-500">
+            No hay datos de operadores disponibles.
           </div>
         </div>
       </div>

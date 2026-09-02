@@ -10,63 +10,36 @@ import {
   TrendingUp,
   ShieldCheck,
 } from "lucide-react";
+import { getMembresiasActivas, getResumenDashboard } from "@/lib/api";
 
-const stats = [
-  {
-    label: "Socios activos",
-    value: "1.248",
-    detail: "+8% vs. mes anterior",
-    icon: Users,
-    color: "text-emerald-400",
-  },
-  {
-    label: "Ingresos del mes",
-    value: "$185.400",
-    detail: "Renovaciones registradas",
-    icon: DollarSign,
-    color: "text-amber-400",
-  },
-  {
-    label: "Ingresos hoy",
-    value: "42",
-    detail: "Llegadas al molinete",
-    icon: LogIn,
-    color: "text-blue-400",
-  },
-  {
-    label: "Membresías vencidas",
-    value: "19",
-    detail: "Requieren renovación",
-    icon: AlertTriangle,
-    color: "text-rose-400",
-  },
-];
+export default async function Home() {
+  const [resumen, membresias] = await Promise.allSettled([
+    getResumenDashboard(),
+    getMembresiasActivas(),
+  ]);
+  const resumenData = resumen.status === "fulfilled" ? resumen.value : {};
+  const planesData = membresias.status === "fulfilled" ? membresias.value : [];
+  const numero = (...keys: string[]) => {
+    for (const key of keys) {
+      const value = resumenData[key];
+      if (typeof value === "number") return value;
+      if (typeof value === "string" && value.trim() !== "" && !Number.isNaN(Number(value))) return Number(value);
+    }
+    return 0;
+  };
+  const moneda = (value: number) => `$${value.toLocaleString("es-AR")}`;
+  const stats = [
+    { label: "Socios activos", value: String(numero("sociosActivos", "usuariosActivos")), detail: "Datos del backend", icon: Users, color: "text-emerald-400" },
+    { label: "Ingresos del mes", value: moneda(numero("ingresosMes", "totalMes", "recaudacionMes")), detail: "Datos del backend", icon: DollarSign, color: "text-amber-400" },
+    { label: "Ingresos hoy", value: String(numero("ingresosHoy", "ingresosDia", "accesosHoy")), detail: "Datos del backend", icon: LogIn, color: "text-blue-400" },
+    { label: "Membresías vencidas", value: String(numero("membresiasVencidas", "vencidos", "usuariosVencidos")), detail: "Datos del backend", icon: AlertTriangle, color: "text-rose-400" },
+  ];
+  const planes = planesData.map((plan) => ({
+    nombre: String(plan.nombre ?? ""),
+    precio: moneda(Number(plan.precio ?? 0)),
+    detalle: String(plan.descripcion ?? ""),
+  }));
 
-const planes = [
-  {
-    nombre: "Mensual",
-    precio: "$14.000",
-    detalle: "Acceso total a sala de musculación y cardio.",
-  },
-  {
-    nombre: "Trimestral",
-    precio: "$38.000",
-    detalle: "Ahorro del 10% + rutina personalizada incluida.",
-  },
-  {
-    nombre: "Semestral",
-    precio: "$70.000",
-    detalle: "Ahorro del 15% + acceso liberado a todas las clases.",
-    popular: true,
-  },
-  {
-    nombre: "Anual",
-    precio: "$120.000",
-    detalle: "Máximo beneficio + evaluaciones físicas trimestrales.",
-  },
-];
-
-export default function Home() {
   return (
     <main className="relative min-h-screen bg-[#171614] text-stone-100 overflow-hidden">
       {/* Resplandor decorativo de fondo */}
@@ -113,9 +86,9 @@ export default function Home() {
             {/* Micro métricas destacadas */}
             <div className="mt-12 grid grid-cols-3 gap-3 sm:gap-4 border-t border-stone-800/80 pt-8">
               {[
-                { label: "Tasa de retención", value: "94%" },
-                { label: "Renovaciones mes", value: "320" },
-                { label: "Nuevos socios", value: "+48" },
+                { label: "Tasa de retención", value: `${numero("retencion", "tasaRetencion")}%` },
+                { label: "Renovaciones mes", value: String(numero("renovacionesMes", "renovaciones")) },
+                { label: "Nuevos socios", value: String(numero("nuevosSocios", "altasMes")) },
               ].map((item) => (
                 <div
                   key={item.label}

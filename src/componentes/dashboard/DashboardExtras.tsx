@@ -9,51 +9,79 @@ import {
   Calendar,
   ArrowDownToLine,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getIngresosHoy, getResumenDashboard } from "@/lib/api";
 
-const pagosRecientes = [
-  {
-    id: "REN-9041",
-    socio: "Carlos Ruiz",
-    dni: "40123456",
-    plan: "Mensual",
-    monto: "$15.000",
-    metodo: "Efectivo",
-    hora: "10:14",
-    operador: "Admin",
-  },
-  {
-    id: "REN-9040",
-    socio: "María López",
-    dni: "35222333",
-    plan: "Trimestral",
-    monto: "$38.000",
-    metodo: "Transferencia",
-    hora: "09:42",
-    operador: "Ana G.",
-  },
-  {
-    id: "REN-9039",
-    socio: "Esteban Quiroga",
-    dni: "41998231",
-    plan: "Mensual",
-    monto: "$15.000",
-    metodo: "Débito",
-    hora: "08:50",
-    operador: "Admin",
-  },
-  {
-    id: "REN-9038",
-    socio: "Luciana Pereyra",
-    dni: "39882110",
-    plan: "Semestral",
-    monto: "$70.000",
-    metodo: "Efectivo",
-    hora: "08:15",
-    operador: "Admin",
-  },
-];
+type Pago = {
+  id: string;
+  socio: string;
+  dni: string;
+  plan: string;
+  monto: number;
+  metodo: string;
+  hora: string;
+  operador: string;
+};
+
+const toPago = (raw: Record<string, unknown>): Pago => ({
+  id: String(raw.id ?? raw._id ?? raw.comprobante ?? ""),
+  socio: String(raw.socio ?? raw.nombre ?? ""),
+  dni: String(raw.dni ?? ""),
+  plan: String(raw.plan ?? raw.tipoMembresia ?? ""),
+  monto: Number(raw.monto ?? raw.pagoMensual ?? 0),
+  metodo: String(raw.metodo ?? raw.metodoPago ?? ""),
+  hora: String(raw.hora ?? raw.fecha ?? ""),
+  operador: String(raw.operador ?? ""),
+});
 
 export function DashboardIngresos() {
+  const [resumen, setResumen] = useState<Record<string, unknown>>({});
+  const [ingresosHoy, setIngresosHoy] = useState(0);
+
+  useEffect(() => {
+    const cargarResumen = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const [resumenData, ingresosData] = await Promise.all([
+          getResumenDashboard(token),
+          getIngresosHoy(token),
+        ]);
+        setResumen(resumenData);
+        setIngresosHoy(Number(ingresosData.data?.length ?? ingresosData.data ?? 0));
+      } catch {
+        setResumen({});
+      }
+    };
+    void cargarResumen();
+  }, []);
+
+  const numero = (...keys: string[]) => {
+    for (const key of keys) {
+      const value = resumen[key];
+      if (typeof value === "number") return value;
+      if (typeof value === "string" && value.trim() !== "" && !Number.isNaN(Number(value))) {
+        return Number(value);
+      }
+    }
+    return 0;
+  };
+  const moneda = (value: number) => `$${value.toLocaleString("es-AR")}`;
+  const variacionIngresos = numero("variacionIngresos", "variacionMes");
+  const pagos = Array.isArray(resumen.pagosRecientes)
+    ? resumen.pagosRecientes
+        .filter((pago): pago is Record<string, unknown> => typeof pago === "object" && pago !== null)
+        .map(toPago)
+    : [];
+  const canales = Array.isArray(resumen.distribucionMetodos)
+    ? resumen.distribucionMetodos
+        .filter((canal): canal is Record<string, unknown> => typeof canal === "object" && canal !== null)
+        .map((canal) => ({
+          nombre: String(canal.nombre ?? canal.metodo ?? ""),
+          monto: Number(canal.monto ?? canal.total ?? 0),
+          porcentaje: Number(canal.porcentaje ?? 0),
+        }))
+    : [];
+
   return (
     <div className="space-y-6">
       {/* Cabecera */}
@@ -84,10 +112,10 @@ export function DashboardIngresos() {
             </div>
           </div>
           <p className="mt-3 text-2xl font-bold font-mono text-stone-900">
-            $185.400
+            {moneda(numero("recaudacionMes", "ingresosMes", "totalMes"))}
           </p>
           <p className="mt-1 text-xs text-emerald-600 font-semibold flex items-center gap-1">
-            <TrendingUp className="h-3 w-3" /> +12.4% vs mes previo
+            <TrendingUp className="h-3 w-3" /> {variacionIngresos}% vs mes previo
           </p>
         </div>
 
@@ -101,10 +129,10 @@ export function DashboardIngresos() {
             </div>
           </div>
           <p className="mt-3 text-2xl font-bold font-mono text-stone-900">
-            $43.000
+            {moneda(numero("cajaHoy", "ingresosHoy", "ingresosDia"))}
           </p>
           <p className="mt-1 text-xs text-stone-500">
-            4 transacciones registradas
+            {ingresosHoy || numero("transaccionesHoy", "cantidadTransacciones")} transacciones registradas
           </p>
         </div>
 
@@ -118,10 +146,10 @@ export function DashboardIngresos() {
             </div>
           </div>
           <p className="mt-3 text-2xl font-bold font-mono text-stone-900">
-            $19.200
+            {moneda(numero("ticketPromedio", "promedioTicket"))}
           </p>
           <p className="mt-1 text-xs text-stone-500">
-            Calculado sobre 132 renovaciones
+            Calculado sobre datos del backend
           </p>
         </div>
 
@@ -135,7 +163,7 @@ export function DashboardIngresos() {
             </div>
           </div>
           <p className="mt-3 text-2xl font-bold font-mono text-stone-900">
-            $240.000
+            {moneda(numero("proyeccionCierre", "proyeccionMes"))}
           </p>
           <p className="mt-1 text-xs text-stone-500">Estimado a fin de mes</p>
         </div>
@@ -147,44 +175,17 @@ export function DashboardIngresos() {
           Distribución por Método de Cobro
         </h3>
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="p-4 rounded-xl bg-stone-50 border border-stone-100">
-            <div className="flex justify-between items-center text-xs text-stone-600 font-semibold mb-2">
-              <span>Efectivo en Caja</span>
-              <span className="font-mono text-stone-900">$98.000 (53%)</span>
+          {canales.map((canal, index) => (
+            <div key={canal.nombre || index} className="p-4 rounded-xl bg-stone-50 border border-stone-100">
+              <div className="flex justify-between items-center text-xs text-stone-600 font-semibold mb-2">
+                <span>{canal.nombre}</span>
+                <span className="font-mono text-stone-900">{moneda(canal.monto)} ({canal.porcentaje}%)</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-stone-200 overflow-hidden">
+                <div className={`h-full rounded-full ${index % 2 === 0 ? "bg-amber-500" : "bg-emerald-500"}`} style={{ width: `${canal.porcentaje}%` }} />
+              </div>
             </div>
-            <div className="h-2 w-full rounded-full bg-stone-200 overflow-hidden">
-              <div
-                className="h-full bg-amber-500 rounded-full"
-                style={{ width: "53%" }}
-              />
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-stone-50 border border-stone-100">
-            <div className="flex justify-between items-center text-xs text-stone-600 font-semibold mb-2">
-              <span>Transferencias Bancarias</span>
-              <span className="font-mono text-stone-900">$59.400 (32%)</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-stone-200 overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 rounded-full"
-                style={{ width: "32%" }}
-              />
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-stone-50 border border-stone-100">
-            <div className="flex justify-between items-center text-xs text-stone-600 font-semibold mb-2">
-              <span>Tarjetas de Débito / QR</span>
-              <span className="font-mono text-stone-900">$28.000 (15%)</span>
-            </div>
-            <div className="h-2 w-full rounded-full bg-stone-200 overflow-hidden">
-              <div
-                className="h-full bg-blue-500 rounded-full"
-                style={{ width: "15%" }}
-              />
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -218,7 +219,7 @@ export function DashboardIngresos() {
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
-              {pagosRecientes.map((pago) => (
+              {pagos.map((pago) => (
                 <tr
                   key={pago.id}
                   className="hover:bg-amber-50/20 transition-colors"
@@ -248,10 +249,17 @@ export function DashboardIngresos() {
                     {pago.hora} hs
                   </td>
                   <td className="py-3.5 pl-4 pr-6 text-right font-mono font-bold text-stone-900">
-                    {pago.monto}
+                    {moneda(pago.monto)}
                   </td>
                 </tr>
               ))}
+              {pagos.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-10 text-center text-sm text-stone-500">
+                    No hay cobros registrados en el resumen del backend.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

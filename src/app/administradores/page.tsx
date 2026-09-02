@@ -1,10 +1,3 @@
-const admins = [
-  { nombre: "Ana Gómez", email: "ana@forcegym.com", rol: "Superadmin", estado: "Activo" },
-  { nombre: "Luciano Vega", email: "luciano@forcegym.com", rol: "Admin", estado: "Activo" },
-  { nombre: "Marina Costa", email: "marina@forcegym.com", rol: "Moderador", estado: "Activo" },
-  { nombre: "Federico Ruiz", email: "federico@forcegym.com", rol: "Admin", estado: "Suspendido" },
-];
-
 export default function AdministradoresPage() {
   return (
     <main className="min-h-[calc(100vh-130px)] bg-zinc-100 px-4 py-10 sm:px-6 lg:px-8">
@@ -34,38 +27,11 @@ export default function AdministradoresPage() {
                 </tr>
               </thead>
               <tbody>
-                {admins.map((admin) => (
-                  <tr key={admin.email} className="border-t border-zinc-200 bg-white">
-                    <td className="px-4 py-3 font-semibold text-zinc-800">{admin.nombre}</td>
-                    <td className="px-4 py-3 text-zinc-600">{admin.email}</td>
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-zinc-700">
-                        {admin.rol}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${
-                          admin.estado === "Activo"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-amber-100 text-amber-700"
-                        }`}
-                      >
-                        {admin.estado}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button className="rounded-lg bg-zinc-100 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-zinc-700 hover:bg-zinc-200">
-                          Editar
-                        </button>
-                        <button className="rounded-lg bg-rose-50 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-rose-700 hover:bg-rose-100">
-                          Borrar
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                <tr>
+                  <td colSpan={5} className="px-4 py-10 text-center text-sm text-zinc-500">
+                    La API no expone aún un listado de administradores.
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>

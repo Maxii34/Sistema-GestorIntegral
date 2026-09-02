@@ -1,8 +1,12 @@
 import { apiRequest, getAuthHeaders } from "@/lib/api/client";
 
 export async function getResumenDashboard(token?: string | null) {
-  return apiRequest<Record<string, unknown>>('/api/dashboard/resumen', {
+  const response = await apiRequest<{
+    data?: Record<string, unknown>;
+  }>('/api/stats/dashboard', {
     method: 'GET',
     headers: getAuthHeaders(token),
   });
+
+  return response.data ?? {};
 }
