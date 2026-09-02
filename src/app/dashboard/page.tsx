@@ -8,6 +8,12 @@ import { DashboardIngresos } from "@/componentes/dashboard/DashboardExtras";
 import { DashboardConfiguracion } from "@/componentes/dashboard/DashboardConfig";
 import { DashboardMembresias } from "@/componentes/dashboard/DashboardMembresias";
 import { Users, DoorOpen, DollarSign, AlertCircle } from "lucide-react";
+import {
+  crearUsuario,
+  eliminarUsuario,
+  getUsuarios,
+  renovarUsuario,
+} from "@/lib/api";
 
 const defaultCards = [
   { label: "Socios activos", value: "1.248", detail: "+8% este mes", icon: Users, tone: "amber" },
@@ -30,13 +36,6 @@ const plansSummary = [
   { nombre: "Anual", total: 188, porcentaje: 15 },
 ];
 
-const initialSocios: Socio[] = [
-  { nombre: "Carlos Ruiz", dni: "40123456", telefono: "381-1234567", plan: "Mensual", estado: "Activo", vencimiento: "12/09/2026" },
-  { nombre: "María López", dni: "35222333", telefono: "381-4567890", plan: "Trimestral", estado: "Activo", vencimiento: "28/09/2026" },
-  { nombre: "Sofía Torres", dni: "30887654", telefono: "381-7654321", plan: "Semestral", estado: "Suspendido", vencimiento: "04/09/2026" },
-  { nombre: "Diego Salas", dni: "29876543", telefono: "381-9876543", plan: "Anual", estado: "Inactivo", vencimiento: "14/08/2026" },
-];
-
 const toEstado = (value?: string | boolean | null): Socio["estado"] => {
   if (value === false || value === "Inactivo") return "Inactivo";
   if (value === "Suspendido") return "Suspendido";
@@ -47,7 +46,7 @@ const toSocio = (raw: Record<string, unknown>): Socio => {
   const nombre = String(raw.nombre ?? "");
   const apellido = String(raw.apellido ?? "");
   const nombreCompleto = [nombre, apellido].filter(Boolean).join(" ") || "Socio sin nombre";
-  const fecha = String(raw.fechaVencimiento ?? raw.vencimiento ?? "30/10/2026");
+  const fecha = String(raw.fechaVencimiento ?? raw.vencimiento ?? "-");
   const formatearFecha = (value: string) => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
@@ -56,6 +55,7 @@ const toSocio = (raw: Record<string, unknown>): Socio => {
 
   return {
     nombre: nombreCompleto,
+    apellido,
     dni: String(raw.dni ?? ""),
     telefono: String(raw.telefono ?? "-"),
     plan: String(raw.plan ?? raw.tipoMembresia ?? raw.membresia ?? "Mensual"),
@@ -66,9 +66,10 @@ const toSocio = (raw: Record<string, unknown>): Socio => {
 
 export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState("socios");
-  const [socios, setSocios] = useState<Socio[]>(initialSocios);
+  const [socios, setSocios] = useState<Socio[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [cards, setCards] = useState(defaultCards);
+  const [sociosError, setSociosError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     nombre: "",
@@ -95,63 +96,86 @@ export default function DashboardPage() {
     [socios],
   );
 
+  const cargarSocios = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const data = await getUsuarios(token);
+      setSocios(data.map(toSocio));
+      setSociosError(null);
+    } catch (error) {
+      setSociosError(error instanceof Error ? error.message : "No se pudieron cargar los socios.");
+    }
+  };
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void cargarSocios();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!form.nombre || !form.apellido || form.dni.length !== 8 || !form.telefono) {
       return;
     }
 
-    const nuevoSocio: Socio = {
-      nombre: `${form.nombre} ${form.apellido}`,
-      dni: form.dni,
-      telefono: form.telefono,
-      plan: form.plan.charAt(0).toUpperCase() + form.plan.slice(1),
-      estado: form.estado,
-      vencimiento: "30/10/2026",
-    };
-
-    setSocios((prev) => [nuevoSocio, ...prev]);
-    setForm({
-      nombre: "",
-      apellido: "",
-      dni: "",
-      telefono: "",
-      pagoMensual: 15000,
-      plan: "mensual",
-      estado: "Activo",
-    });
-  };
-
-  const handleDeleteSocio = (dni: string) => {
-    if (confirm("¿Estás seguro de eliminar este socio del sistema?")) {
-      setSocios((prev) => prev.filter((s) => s.dni !== dni));
+    try {
+      const token = localStorage.getItem("token");
+      await crearUsuario(form, token);
+      await cargarSocios();
+      setForm({
+        nombre: "",
+        apellido: "",
+        dni: "",
+        telefono: "",
+        pagoMensual: 15000,
+        plan: "mensual",
+        estado: "Activo",
+      });
+    } catch (error) {
+      setSociosError(error instanceof Error ? error.message : "No se pudo registrar el socio.");
     }
   };
 
-  const handleRenovarSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleDeleteSocio = async (dni: string) => {
+    if (confirm("¿Estás seguro de eliminar este socio del sistema?")) {
+      try {
+        const token = localStorage.getItem("token");
+        await eliminarUsuario(dni, token);
+        await cargarSocios();
+      } catch (error) {
+        setSociosError(error instanceof Error ? error.message : "No se pudo eliminar el socio.");
+      }
+    }
+  };
+
+  const handleRenovarSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!renovarModal.socio) return;
 
-    setSocios((prev) =>
-      prev.map((s) =>
-        s.dni === renovarModal.socio?.dni
-          ? {
-              ...s,
-              plan: renovacionForm.tipoMembresia.charAt(0).toUpperCase() + renovacionForm.tipoMembresia.slice(1),
-              estado: "Activo",
-              vencimiento: "30/11/2026",
-            }
-          : s,
-      ),
-    );
-
-    setRenovarModal({ open: false, socio: null });
+    try {
+      const token = localStorage.getItem("token");
+      await renovarUsuario(
+        {
+          dni: renovarModal.socio.dni,
+          pagoMensual: renovacionForm.pagoMensual,
+          tipoMembresia: renovacionForm.tipoMembresia,
+        },
+        token,
+      );
+      await cargarSocios();
+      setRenovarModal({ open: false, socio: null });
+    } catch (error) {
+      setSociosError(error instanceof Error ? error.message : "No se pudo renovar la membresía.");
+    }
   };
 
   const handleRenovacionChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -175,9 +199,15 @@ export default function DashboardPage() {
 
     if (activeSection === "socios") {
       return (
-        <DashboardSocios
-          socios={socios}
-          sociosActivos={sociosActivos}
+        <div>
+          {sociosError && (
+            <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+              {sociosError}
+            </div>
+          )}
+          <DashboardSocios
+            socios={socios}
+            sociosActivos={sociosActivos}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           form={form}
@@ -207,7 +237,8 @@ export default function DashboardPage() {
           renovarModal={renovarModal}
           onCloseRenovarModal={() => setRenovarModal({ open: false, socio: null })}
           onRenovarSubmit={handleRenovarSubmit}
-        />
+          />
+        </div>
       );
     }
 

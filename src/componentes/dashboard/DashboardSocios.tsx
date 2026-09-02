@@ -1,7 +1,23 @@
-import { Search, Filter, Plus, User, IdCard, Phone, CreditCard, DollarSign, Calendar, UserCheck, AlertCircle, RefreshCw, Trash2, X } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Plus,
+  User,
+  IdCard,
+  Phone,
+  CreditCard,
+  DollarSign,
+  Calendar,
+  UserCheck,
+  AlertCircle,
+  RefreshCw,
+  Trash2,
+  X,
+} from "lucide-react";
 
 export type Socio = {
   nombre: string;
+  apellido: string;
   dni: string;
   telefono: string;
   plan: string;
@@ -23,7 +39,9 @@ type DashboardSociosProps = {
     plan: string;
     estado: "Activo" | "Suspendido" | "Inactivo";
   };
-  onFormChange: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  onFormChange: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
   onFormReset: () => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onDeleteSocio: (dni: string) => void;
@@ -32,7 +50,9 @@ type DashboardSociosProps = {
     pagoMensual: number;
     tipoMembresia: string;
   };
-  onRenovacionFormChange: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
+  onRenovacionFormChange: (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => void;
   renovarModal: { open: boolean; socio: Socio | null };
   onCloseRenovarModal: () => void;
   onRenovarSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
@@ -57,16 +77,20 @@ export default function DashboardSocios({
 }: DashboardSociosProps) {
   const filteredSocios = socios.filter(
     (socio) =>
-      socio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || socio.dni.includes(searchTerm),
+      socio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      socio.dni.includes(searchTerm),
   );
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-stone-200 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-stone-900">Padrón de Socios</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-stone-900">
+            Padrón de Socios
+          </h1>
           <p className="text-sm text-stone-500">
-            Altas, control de accesos, vigencia y renovaciones directas al backend.
+            Altas, control de accesos, vigencia y renovaciones directas al
+            backend.
           </p>
         </div>
         <div className="flex items-center gap-2.5">
@@ -88,11 +112,17 @@ export default function DashboardSocios({
                 <Plus className="h-4 w-4" />
               </div>
               <div>
-                <h2 className="text-sm font-bold text-stone-900">Registrar Nuevo Socio</h2>
-                <p className="text-xs text-stone-500">Genera el alta y habilita la entrada en el molinete.</p>
+                <h2 className="text-sm font-bold text-stone-900">
+                  Registrar Nuevo Socio
+                </h2>
+                <p className="text-xs text-stone-500">
+                  Genera el alta y habilita la entrada en el molinete.
+                </p>
               </div>
             </div>
-            <span className="text-[11px] font-semibold text-stone-400 font-mono">POST /api/usuarios</span>
+            <span className="text-[11px] font-semibold text-stone-400 font-mono">
+              POST /api/usuarios
+            </span>
           </div>
         </div>
 
@@ -103,7 +133,9 @@ export default function DashboardSocios({
             </span>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">Nombre</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  Nombre
+                </label>
                 <div className="relative">
                   <User className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
                   <input
@@ -118,7 +150,9 @@ export default function DashboardSocios({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">Apellido</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  Apellido
+                </label>
                 <div className="relative">
                   <User className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
                   <input
@@ -133,7 +167,9 @@ export default function DashboardSocios({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">DNI (8 dígitos)</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  DNI (8 dígitos)
+                </label>
                 <div className="relative">
                   <IdCard className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
                   <input
@@ -155,7 +191,9 @@ export default function DashboardSocios({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">Teléfono Celular</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  Teléfono Celular
+                </label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
                   <input
@@ -177,7 +215,9 @@ export default function DashboardSocios({
             </span>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">Tipo de Membresía</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  Tipo de Membresía
+                </label>
                 <div className="relative">
                   <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
                   <select
@@ -195,7 +235,9 @@ export default function DashboardSocios({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">Monto Cobrado ($ ARS)</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                  Monto Cobrado ($ ARS)
+                </label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
                   <input
@@ -209,7 +251,10 @@ export default function DashboardSocios({
               </div>
 
               <div className="flex items-center p-3 rounded-xl bg-amber-50/70 border border-amber-200/70 text-xs text-amber-800 leading-relaxed">
-                <span>La fecha de inicio y de vencimiento se calculan automáticamente al registrar el socio.</span>
+                <span>
+                  La fecha de inicio y de vencimiento se calculan
+                  automáticamente al registrar el socio.
+                </span>
               </div>
             </div>
           </div>
@@ -276,19 +321,28 @@ export default function DashboardSocios({
                   .toUpperCase();
 
                 return (
-                  <tr key={socio.dni} className="hover:bg-amber-50/20 transition-colors group">
+                  <tr
+                    key={socio.dni}
+                    className="hover:bg-amber-50/20 transition-colors group"
+                  >
                     <td className="py-4 pl-6 pr-4">
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-xs font-bold text-amber-800 font-mono">
                           {initials}
                         </div>
                         <div>
-                          <span className="font-semibold text-stone-900 block leading-tight">{socio.nombre}</span>
-                          <span className="text-[11px] text-stone-400">Registrado</span>
+                          <span className="font-semibold text-stone-900 block leading-tight">
+                            {socio.nombre}
+                          </span>
+                          <span className="text-[11px] text-stone-400">
+                            Registrado
+                          </span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 font-mono text-xs font-medium text-stone-700">{socio.dni}</td>
+                    <td className="px-4 py-4 font-mono text-xs font-medium text-stone-700">
+                      {socio.dni}
+                    </td>
                     <td className="px-4 py-4 text-xs text-stone-600">
                       <span className="inline-flex items-center gap-1.5">
                         <Phone className="h-3 w-3 text-stone-400" />
@@ -310,7 +364,11 @@ export default function DashboardSocios({
                               : "bg-rose-50 text-rose-700 border border-rose-200"
                         }`}
                       >
-                        {socio.estado === "Activo" ? <UserCheck className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                        {socio.estado === "Activo" ? (
+                          <UserCheck className="h-3 w-3" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3" />
+                        )}
                         <span>{socio.estado}</span>
                       </span>
                     </td>
@@ -345,7 +403,10 @@ export default function DashboardSocios({
 
               {filteredSocios.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-stone-500">
+                  <td
+                    colSpan={7}
+                    className="px-6 py-12 text-center text-sm text-stone-500"
+                  >
                     No se encontraron socios que coincidan con la búsqueda.
                   </td>
                 </tr>
@@ -355,12 +416,21 @@ export default function DashboardSocios({
         </div>
 
         <div className="flex items-center justify-between border-t border-stone-200 bg-stone-50/60 px-6 py-3 text-xs text-stone-500">
-          <span>Mostrando {filteredSocios.length} de {socios.length} socios registrados</span>
+          <span>
+            Mostrando {filteredSocios.length} de {socios.length} socios
+            registrados
+          </span>
           <div className="flex gap-2">
-            <button disabled className="rounded-md border border-stone-200 bg-white px-2.5 py-1 font-medium text-stone-400 opacity-50 cursor-not-allowed">
+            <button
+              disabled
+              className="rounded-md border border-stone-200 bg-white px-2.5 py-1 font-medium text-stone-400 opacity-50 cursor-not-allowed"
+            >
               Anterior
             </button>
-            <button disabled className="rounded-md border border-stone-200 bg-white px-2.5 py-1 font-medium text-stone-400 opacity-50 cursor-not-allowed">
+            <button
+              disabled
+              className="rounded-md border border-stone-200 bg-white px-2.5 py-1 font-medium text-stone-400 opacity-50 cursor-not-allowed"
+            >
               Siguiente
             </button>
           </div>
@@ -372,8 +442,12 @@ export default function DashboardSocios({
           <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <div>
-                <h3 className="text-base font-bold text-stone-900">Renovar Membresía</h3>
-                <p className="text-xs text-stone-500">Endpoint: POST /api/renovar</p>
+                <h3 className="text-base font-bold text-stone-900">
+                  Renovar Membresía
+                </h3>
+                <p className="text-xs text-stone-500">
+                  Endpoint: POST /api/renovar
+                </p>
               </div>
               <button
                 onClick={onCloseRenovarModal}
@@ -386,12 +460,18 @@ export default function DashboardSocios({
             <form onSubmit={onRenovarSubmit} className="mt-4 space-y-4">
               <div className="rounded-xl bg-stone-50 p-3 border border-stone-100">
                 <span className="text-xs text-stone-500 block">Socio</span>
-                <span className="text-sm font-bold text-stone-900">{renovarModal.socio.nombre}</span>
-                <span className="text-xs font-mono text-stone-600 block mt-0.5">DNI: {renovarModal.socio.dni}</span>
+                <span className="text-sm font-bold text-stone-900">
+                  {renovarModal.socio.nombre}
+                </span>
+                <span className="text-xs font-mono text-stone-600 block mt-0.5">
+                  DNI: {renovarModal.socio.dni}
+                </span>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Membresía / Período</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Membresía / Período
+                </label>
                 <select
                   value={renovacionForm.tipoMembresia}
                   onChange={onRenovacionFormChange}
@@ -405,7 +485,9 @@ export default function DashboardSocios({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">Importe Abonado ($ ARS)</label>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Importe Abonado ($ ARS)
+                </label>
                 <input
                   type="number"
                   value={renovacionForm.pagoMensual}
