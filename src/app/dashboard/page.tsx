@@ -87,7 +87,7 @@ export default function DashboardPage() {
   });
 
   const [renovacionForm, setRenovacionForm] = useState({
-    pagoMensual: 15000,
+    pagoMensual: 15000 as number | "",
     tipoMembresia: "mensual",
   });
 
@@ -159,7 +159,7 @@ export default function DashboardPage() {
 
   const handleRenovarSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!renovarModal.socio) return;
+    if (!renovarModal.socio || renovacionForm.pagoMensual === "") return;
 
     try {
       const token = localStorage.getItem("token");
@@ -180,7 +180,10 @@ export default function DashboardPage() {
 
   const handleRenovacionChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
-    setRenovacionForm((prev) => ({ ...prev, [name]: value }));
+    setRenovacionForm((prev) => ({
+      ...prev,
+      [name]: name === "pagoMensual" ? (value === "" ? "" : Number(value)) : value,
+    }));
   };
 
   const renderContent = () => {

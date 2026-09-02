@@ -12,8 +12,8 @@ import {
   AlertCircle,
   RefreshCw,
   Trash2,
-  X,
 } from "lucide-react";
+import RenovarSocioModal from "@/componentes/dashboard/modals/RenovarSocioModal";
 
 export type Socio = {
   nombre: string;
@@ -47,7 +47,7 @@ type DashboardSociosProps = {
   onDeleteSocio: (dni: string) => void;
   onOpenRenovar: (socio: Socio) => void;
   renovacionForm: {
-    pagoMensual: number;
+    pagoMensual: number | "";
     tipoMembresia: string;
   };
   onRenovacionFormChange: (
@@ -304,7 +304,6 @@ export default function DashboardSocios({
               <tr className="border-b border-stone-200 bg-stone-50 text-[11px] font-bold uppercase tracking-wider text-stone-500">
                 <th className="py-3.5 pl-6 pr-4">Socio</th>
                 <th className="px-4 py-3.5">Documento (DNI)</th>
-                <th className="px-4 py-3.5">Contacto</th>
                 <th className="px-4 py-3.5">Plan</th>
                 <th className="px-4 py-3.5">Estado</th>
                 <th className="px-4 py-3.5">Vencimiento</th>
@@ -342,12 +341,6 @@ export default function DashboardSocios({
                     </td>
                     <td className="px-4 py-4 font-mono text-xs font-medium text-stone-700">
                       {socio.dni}
-                    </td>
-                    <td className="px-4 py-4 text-xs text-stone-600">
-                      <span className="inline-flex items-center gap-1.5">
-                        <Phone className="h-3 w-3 text-stone-400" />
-                        {socio.telefono}
-                      </span>
                     </td>
                     <td className="px-4 py-4">
                       <span className="inline-block rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-semibold text-stone-800">
@@ -438,82 +431,13 @@ export default function DashboardSocios({
       </div>
 
       {renovarModal.open && renovarModal.socio && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in duration-150">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <div>
-                <h3 className="text-base font-bold text-stone-900">
-                  Renovar Membresía
-                </h3>
-                <p className="text-xs text-stone-500">
-                  Endpoint: POST /api/renovar
-                </p>
-              </div>
-              <button
-                onClick={onCloseRenovarModal}
-                className="p-1 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <form onSubmit={onRenovarSubmit} className="mt-4 space-y-4">
-              <div className="rounded-xl bg-stone-50 p-3 border border-stone-100">
-                <span className="text-xs text-stone-500 block">Socio</span>
-                <span className="text-sm font-bold text-stone-900">
-                  {renovarModal.socio.nombre}
-                </span>
-                <span className="text-xs font-mono text-stone-600 block mt-0.5">
-                  DNI: {renovarModal.socio.dni}
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Membresía / Período
-                </label>
-                <select
-                  value={renovacionForm.tipoMembresia}
-                  onChange={onRenovacionFormChange}
-                  className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-amber-500 focus:outline-none"
-                >
-                  <option value="mensual">Mensual (30 días)</option>
-                  <option value="trimestral">Trimestral (90 días)</option>
-                  <option value="semestral">Semestral (180 días)</option>
-                  <option value="anual">Anual (365 días)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1">
-                  Importe Abonado ($ ARS)
-                </label>
-                <input
-                  type="number"
-                  value={renovacionForm.pagoMensual}
-                  onChange={onRenovacionFormChange}
-                  className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-mono text-stone-900 focus:border-amber-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-stone-100">
-                <button
-                  type="button"
-                  onClick={onCloseRenovarModal}
-                  className="px-4 py-2 text-xs font-semibold text-stone-600 hover:bg-stone-100 rounded-lg transition"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-stone-950 rounded-lg transition"
-                >
-                  Confirmar Renovación
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <RenovarSocioModal
+          socio={renovarModal.socio}
+          form={renovacionForm}
+          onChange={onRenovacionFormChange}
+          onClose={onCloseRenovarModal}
+          onSubmit={onRenovarSubmit}
+        />
       )}
     </div>
   );
