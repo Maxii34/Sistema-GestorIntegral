@@ -4,3 +4,4 @@ export * from "@/lib/api/dashboard";
 export * from "@/lib/api/usuarios";
 export * from "@/lib/api/membresias";
 export * from "@/lib/api/resumen";
+export * from "@/lib/api/renovaciones";

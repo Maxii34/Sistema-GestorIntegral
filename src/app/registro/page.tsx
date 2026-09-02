@@ -18,6 +18,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { registerAdmin } from "@/lib/api";
+import Swal from "sweetalert2";
 
 export default function RegisterAdminPage() {
   const router = useRouter();
@@ -79,6 +80,13 @@ export default function RegisterAdminPage() {
       );
 
       setSuccess("Operador registrado exitosamente. Redirigiendo al login...");
+      await Swal.fire({
+        icon: "success",
+        title: "Administrador registrado",
+        text: "Serás redirigido al inicio de sesión.",
+        timer: 1800,
+        showConfirmButton: false,
+      });
       setTimeout(() => {
         router.push("/login");
       }, 1500);
@@ -88,6 +96,11 @@ export default function RegisterAdminPage() {
           ? err.message
           : "Error al conectar con el servidor (puerto 3001).";
       setError(message);
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo registrar",
+        text: message,
+      });
     } finally {
       setLoading(false);
     }

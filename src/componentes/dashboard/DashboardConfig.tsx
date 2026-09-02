@@ -5,6 +5,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { verificarVencimientos } from "@/lib/api";
+import Swal from "sweetalert2";
 
 export function DashboardConfiguracion() {
   const [cronLoading, setCronLoading] = useState(false);
@@ -19,7 +20,9 @@ export function DashboardConfiguracion() {
       setCronResult(
         `Verificación completada: ${data.usuariosDesactivados ?? 0} socios dados de baja.`
       );
+      await Swal.fire({ icon: "success", title: "Verificación completada", text: `${data.usuariosDesactivados ?? 0} socios dados de baja.`, timer: 1800, showConfirmButton: false });
     } catch {
+      await Swal.fire({ icon: "error", title: "Error de conexión", text: "No se pudo contactar con el servidor." });
       setCronResult("Error al contactar con el servidor.");
     } finally {
       setCronLoading(false);

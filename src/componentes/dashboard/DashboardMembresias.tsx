@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { CreditCard, Plus, Check, Clock, Users, X, Pencil } from "lucide-react";
+import Swal from "sweetalert2";
 import {
   actualizarMembresia,
   crearMembresia,
@@ -109,12 +110,28 @@ export function DashboardMembresias() {
       await cargarPlanes();
       setError(null);
       handleCloseModal();
+      await Swal.fire({
+        icon: "success",
+        title: planEnEdicion ? "Membresía actualizada" : "Membresía creada",
+        timer: 1700,
+        showConfirmButton: false,
+      });
     } catch (submitError) {
+      await Swal.fire({ icon: "error", title: "No se pudo guardar", text: submitError instanceof Error ? submitError.message : "Error del servidor." });
       setError(submitError instanceof Error ? submitError.message : "No se pudo guardar la membresía.");
     }
   };
 
   const toggleEstadoPlan = async (plan: PlanItem) => {
+    const confirmacion = await Swal.fire({
+      icon: "question",
+      title: plan.activa ? "¿Pausar membresía?" : "¿Activar membresía?",
+      showCancelButton: true,
+      confirmButtonText: plan.activa ? "Pausar" : "Activar",
+      cancelButtonText: "Cancelar",
+    });
+    if (!confirmacion.isConfirmed) return;
+
     try {
       const token = localStorage.getItem("token");
       await actualizarMembresia(
@@ -129,7 +146,9 @@ export function DashboardMembresias() {
         token,
       );
       await cargarPlanes();
+      await Swal.fire({ icon: "success", title: "Estado actualizado", timer: 1500, showConfirmButton: false });
     } catch (toggleError) {
+      await Swal.fire({ icon: "error", title: "No se pudo actualizar", text: toggleError instanceof Error ? toggleError.message : "Error del servidor." });
       setError(toggleError instanceof Error ? toggleError.message : "No se pudo actualizar el estado.");
     }
   };

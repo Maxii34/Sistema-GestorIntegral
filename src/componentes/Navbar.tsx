@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   Dumbbell,
   Home,
@@ -6,9 +9,49 @@ import {
   LayoutDashboard,
   LogIn,
   UserPlus,
+  LogOut,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 export default function Navbar() {
+  const router = useRouter();
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const syncAuth = () => setLoggedIn(Boolean(localStorage.getItem("token")));
+    syncAuth();
+    window.addEventListener("storage", syncAuth);
+    window.addEventListener("auth-change", syncAuth);
+    return () => {
+      window.removeEventListener("storage", syncAuth);
+      window.removeEventListener("auth-change", syncAuth);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      icon: "question",
+      title: "¿Cerrar sesión?",
+      showCancelButton: true,
+      confirmButtonText: "Cerrar sesión",
+      cancelButtonText: "Cancelar",
+    });
+    if (!result.isConfirmed) return;
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    setLoggedIn(false);
+    window.dispatchEvent(new Event("auth-change"));
+    await Swal.fire({
+      icon: "success",
+      title: "Sesión cerrada",
+      timer: 1200,
+      showConfirmButton: false,
+    });
+    router.push("/login");
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-stone-800/80 bg-[#171614]/90 backdrop-blur-md text-white shadow-[0_12px_32px_rgba(0,0,0,0.45)]">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -44,31 +87,46 @@ export default function Navbar() {
             <DoorOpen className="h-4 w-4 text-stone-400 transition-colors duration-200 group-hover:text-amber-300" />
             <span>Ingreso</span>
           </Link>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-[15px] font-medium text-stone-300 transition-all duration-200 hover:bg-stone-800/60 hover:text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
-          >
-            <LayoutDashboard className="h-4 w-4 text-stone-400 transition-colors duration-200 group-hover:text-amber-300" />
-            <span>Dashboard</span>
-          </Link>
+          {loggedIn && (
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-[15px] font-medium text-stone-300 transition-all duration-200 hover:bg-stone-800/60 hover:text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50"
+            >
+              <LayoutDashboard className="h-4 w-4 text-stone-400 transition-colors duration-200 group-hover:text-amber-300" />
+              <span>Dashboard</span>
+            </Link>
+          )}
         </nav>
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 rounded-full border border-stone-700/80 bg-stone-900/40 px-4 py-2 text-sm font-semibold text-stone-200 transition-all duration-200 hover:border-amber-400/60 hover:bg-stone-800/80 hover:text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 active:scale-95"
-          >
-            <LogIn className="h-4 w-4 text-stone-400" />
-            <span>Login</span>
-          </Link>
-          <Link
-            href="/registro"
-            className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-amber-400 via-amber-500 to-amber-500 px-4 py-2 text-sm font-bold uppercase tracking-wider text-stone-950 shadow-[0_4px_20px_rgba(245,158,11,0.25)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_6px_25px_rgba(245,158,11,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 active:scale-95"
-          >
-            <UserPlus className="h-4 w-4 text-stone-950" />
-            <span>Register</span>
-          </Link>
+          {loggedIn ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 rounded-full border border-rose-400/40 bg-rose-500/10 px-4 py-2 text-sm font-semibold text-rose-200 transition-all duration-200 hover:bg-rose-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 active:scale-95"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Cerrar sesión</span>
+            </button>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-full border border-stone-700/80 bg-stone-900/40 px-4 py-2 text-sm font-semibold text-stone-200 transition-all duration-200 hover:border-amber-400/60 hover:bg-stone-800/80 hover:text-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 active:scale-95"
+              >
+                <LogIn className="h-4 w-4 text-stone-400" />
+                <span>Login</span>
+              </Link>
+              <Link
+                href="/registro"
+                className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-amber-400 via-amber-500 to-amber-500 px-4 py-2 text-sm font-bold uppercase tracking-wider text-stone-950 shadow-[0_4px_20px_rgba(245,158,11,0.25)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_6px_25px_rgba(245,158,11,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 active:scale-95"
+              >
+                <UserPlus className="h-4 w-4 text-stone-950" />
+                <span>Register</span>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

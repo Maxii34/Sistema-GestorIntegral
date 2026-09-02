@@ -15,6 +15,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { loginAdmin } from "@/lib/api";
+import Swal from "sweetalert2";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,8 +54,15 @@ export default function LoginPage() {
         if (data.usuario) {
           localStorage.setItem("usuario", JSON.stringify(data.usuario));
         }
+        window.dispatchEvent(new Event("auth-change"));
       }
 
+      await Swal.fire({
+        icon: "success",
+        title: "Sesión iniciada",
+        timer: 1200,
+        showConfirmButton: false,
+      });
       router.push("/dashboard");
     } catch (err: unknown) {
       const message =
@@ -62,6 +70,11 @@ export default function LoginPage() {
           ? err.message
           : "No se pudo conectar con el servidor.";
       setError(message);
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo iniciar sesión",
+        text: message,
+      });
     } finally {
       setLoading(false);
     }

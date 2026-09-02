@@ -27,8 +27,16 @@ export async function registrarIngreso(dni: string, token?: string | null) {
 }
 
 export async function getIngresosHoy(token?: string | null) {
-  return apiRequest<{ data?: Array<Record<string, unknown>> }>('/api/ingreso/hoy', {
+  return apiRequest<{ data?: { fecha?: string; total?: number } }>('/api/ingreso/hoy', {
     method: 'GET',
     headers: getAuthHeaders(token),
   });
+}
+
+export async function getDetalleIngresosHoy(token?: string | null) {
+  const response = await apiRequest<{ data?: Array<Record<string, unknown>> }>(
+    "/api/ingreso/hoy/detalle",
+    { method: "GET", headers: getAuthHeaders(token) },
+  );
+  return response.data ?? [];
 }

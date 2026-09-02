@@ -27,10 +27,19 @@ export default async function Home() {
     }
     return 0;
   };
+  const sociosPorEstado = Array.isArray(resumenData.sociosPorEstado)
+    ? resumenData.sociosPorEstado
+    : [];
+  const activos = sociosPorEstado.find(
+    (item) => typeof item === "object" && item !== null && String(item._id).toLowerCase() === "activo",
+  );
+  const ingresosMes = typeof resumenData.ingresosMesActual === "object" && resumenData.ingresosMesActual !== null
+    ? resumenData.ingresosMesActual as Record<string, unknown>
+    : {};
   const moneda = (value: number) => `$${value.toLocaleString("es-AR")}`;
   const stats = [
-    { label: "Socios activos", value: String(numero("sociosActivos", "usuariosActivos")), detail: "Datos del backend", icon: Users, color: "text-emerald-400" },
-    { label: "Ingresos del mes", value: moneda(numero("ingresosMes", "totalMes", "recaudacionMes")), detail: "Datos del backend", icon: DollarSign, color: "text-amber-400" },
+    { label: "Socios activos", value: String(activos && typeof activos === "object" && "total" in activos ? activos.total : numero("sociosActivos", "usuariosActivos")), detail: "Datos del backend", icon: Users, color: "text-emerald-400" },
+    { label: "Ingresos del mes", value: moneda(Number(ingresosMes.total ?? numero("ingresosMes", "totalMes", "recaudacionMes"))), detail: "Datos del backend", icon: DollarSign, color: "text-amber-400" },
     { label: "Ingresos hoy", value: String(numero("ingresosHoy", "ingresosDia", "accesosHoy")), detail: "Datos del backend", icon: LogIn, color: "text-blue-400" },
     { label: "Membresías vencidas", value: String(numero("membresiasVencidas", "vencidos", "usuariosVencidos")), detail: "Datos del backend", icon: AlertTriangle, color: "text-rose-400" },
   ];

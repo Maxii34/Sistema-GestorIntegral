@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 import DashboardSidebar from "@/componentes/dashboard/DashboardSidebar";
 import DashboardResumen from "@/componentes/dashboard/DashboardResumen";
 import DashboardSocios, { type Socio } from "@/componentes/dashboard/DashboardSocios";
@@ -13,6 +15,7 @@ import {
   eliminarUsuario,
   getUsuarios,
   getResumenDashboard,
+  getDetalleIngresosHoy,
   renovarUsuario,
 } from "@/lib/api";
 
@@ -55,10 +58,13 @@ const toSocio = (raw: Record<string, unknown>): Socio => {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [authReady, setAuthReady] = useState(false);
   const [activeSection, setActiveSection] = useState("socios");
   const [socios, setSocios] = useState<Socio[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [resumen, setResumen] = useState<Record<string, unknown>>({});
+  const [recentEntries, setRecentEntries] = useState<Array<{ nombre: string; dni: string; ingreso: string; estado: string }>>([]);
   const [sociosError, setSociosError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
@@ -147,6 +153,19 @@ export default function DashboardPage() {
     try {
       const token = localStorage.getItem("token");
       setResumen(await getResumenDashboard(token));
+      const ingresos = await getDetalleIngresosHoy(token);
+      setRecentEntries(ingresos.map((ingreso) => {
+        const socio = typeof ingreso.usuarioId === "object" && ingreso.usuarioId !== null
+          ? ingreso.usuarioId as Record<string, unknown>
+          : {};
+        const fecha = new Date(String(ingreso.fechaIngreso ?? ""));
+        return {
+          nombre: `${String(socio.nombre ?? "Socio")} ${String(socio.apellido ?? "")}`.trim(),
+          dni: String(ingreso.dni ?? ""),
+          ingreso: Number.isNaN(fecha.getTime()) ? "-" : fecha.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
+          estado: String(socio.estado ?? "activo").toLowerCase() === "activo" ? "Activo" : "Inactivo",
+        };
+      }));
     } catch (error) {
       setSociosError(error instanceof Error ? error.message : "No se pudo cargar el resumen.");
     }
@@ -164,13 +183,18 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      router.replace("/login");
+      return;
+    }
+    setAuthReady(true);
     const timeoutId = window.setTimeout(() => {
       void cargarSocios();
       void cargarResumen();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
-  }, []);
+  }, [router]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -195,6 +219,7 @@ export default function DashboardPage() {
         estado: form.estado.toLowerCase(),
       }, token);
       await cargarSocios();
+      await Swal.fire({ icon: "success", title: "Socio registrado", text: "El socio fue agregado correctamente.", timer: 1800, showConfirmButton: false });
       setForm({
         nombre: "",
         apellido: "",
@@ -205,17 +230,29 @@ export default function DashboardPage() {
         estado: "Activo",
       });
     } catch (error) {
+      await Swal.fire({ icon: "error", title: "No se pudo registrar", text: error instanceof Error ? error.message : "Error del servidor." });
       setSociosError(error instanceof Error ? error.message : "No se pudo registrar el socio.");
     }
   };
 
   const handleDeleteSocio = async (dni: string) => {
-    if (confirm("¿Estás seguro de eliminar este socio del sistema?")) {
+    const confirmacion = await Swal.fire({
+      icon: "warning",
+      title: "¿Eliminar socio?",
+      text: "Esta acción no se puede deshacer.",
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#e11d48",
+    });
+    if (confirmacion.isConfirmed) {
       try {
         const token = localStorage.getItem("token");
         await eliminarUsuario(dni, token);
         await cargarSocios();
+        await Swal.fire({ icon: "success", title: "Socio eliminado", timer: 1600, showConfirmButton: false });
       } catch (error) {
+        await Swal.fire({ icon: "error", title: "No se pudo eliminar", text: error instanceof Error ? error.message : "Error del servidor." });
         setSociosError(error instanceof Error ? error.message : "No se pudo eliminar el socio.");
       }
     }
@@ -237,10 +274,14 @@ export default function DashboardPage() {
       );
       await cargarSocios();
       setRenovarModal({ open: false, socio: null });
+      await Swal.fire({ icon: "success", title: "Renovación confirmada", text: "La membresía fue actualizada.", timer: 1800, showConfirmButton: false });
     } catch (error) {
+      await Swal.fire({ icon: "error", title: "No se pudo renovar", text: error instanceof Error ? error.message : "Error del servidor." });
       setSociosError(error instanceof Error ? error.message : "No se pudo renovar la membresía.");
     }
   };
+
+  if (!authReady) return null;
 
   const handleRenovacionChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -255,7 +296,7 @@ export default function DashboardPage() {
       return (
         <DashboardResumen
           cards={cards}
-          recentEntries={[]}
+          recentEntries={recentEntries}
           plansSummary={planesDesdeResumen.length ? planesDesdeResumen : plansSummary}
           sociosActivos={sociosActivos}
           socios={socios}

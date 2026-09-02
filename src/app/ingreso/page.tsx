@@ -14,6 +14,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { registrarIngreso } from "@/lib/api";
+import Swal from "sweetalert2";
 
 interface RespuestaIngreso {
   ok: boolean;
@@ -88,7 +89,15 @@ export default function IngresoPage() {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const result = await registrarIngreso(dni, token);
       setData(result);
+      await Swal.fire({
+        icon: result.acceso ? "success" : "warning",
+        title: result.acceso ? "Acceso autorizado" : "Acceso denegado",
+        text: result.mensaje,
+        timer: 1800,
+        showConfirmButton: false,
+      });
     } catch {
+      await Swal.fire({ icon: "error", title: "No se pudo registrar el ingreso", text: "Verificá la conexión con el servidor." });
       setData({
         ok: false,
         acceso: false,

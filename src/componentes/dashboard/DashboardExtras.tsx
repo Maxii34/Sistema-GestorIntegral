@@ -10,7 +10,10 @@ import {
   ArrowDownToLine,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getIngresosHoy, getResumenDashboard } from "@/lib/api";
+import {
+  getRenovacionesRecientes,
+  getResumenDashboard,
+} from "@/lib/api";
 
 type Pago = {
   id: string;
@@ -36,25 +39,24 @@ const toPago = (raw: Record<string, unknown>): Pago => ({
 
 export function DashboardIngresos() {
   const [resumen, setResumen] = useState<Record<string, unknown>>({});
-  const [ingresosHoy, setIngresosHoy] = useState(0);
+  const [pagos, setPagos] = useState<Pago[]>([]);
 
   useEffect(() => {
     const cargarResumen = async () => {
       try {
         const token = localStorage.getItem("token");
-        const [resumenData, ingresosData] = await Promise.all([
+        const [resumenData, renovacionesData] = await Promise.all([
           getResumenDashboard(token),
-          getIngresosHoy(token),
+          getRenovacionesRecientes(token),
         ]);
         setResumen(resumenData);
-        setIngresosHoy(Number(ingresosData.data?.length ?? ingresosData.data ?? 0));
+        setPagos(renovacionesData.map(toPago));
       } catch {
         setResumen({});
       }
     };
     void cargarResumen();
   }, []);
-
   const numero = (...keys: string[]) => {
     for (const key of keys) {
       const value = resumen[key];
@@ -66,12 +68,17 @@ export function DashboardIngresos() {
     return 0;
   };
   const moneda = (value: number) => `$${value.toLocaleString("es-AR")}`;
+  const ingresosMesActual =
+    typeof resumen.ingresosMesActual === "object" && resumen.ingresosMesActual !== null
+      ? resumen.ingresosMesActual as Record<string, unknown>
+      : {};
+  const totalMes = Number(ingresosMesActual.total ?? numero("recaudacionMes", "ingresosMes", "totalMes"));
+  const cantidadMes = Number(ingresosMesActual.cantidad ?? 0);
+  const renovacionesHoy =
+    typeof resumen.renovacionesHoy === "object" && resumen.renovacionesHoy !== null
+      ? resumen.renovacionesHoy as Record<string, unknown>
+      : {};
   const variacionIngresos = numero("variacionIngresos", "variacionMes");
-  const pagos = Array.isArray(resumen.pagosRecientes)
-    ? resumen.pagosRecientes
-        .filter((pago): pago is Record<string, unknown> => typeof pago === "object" && pago !== null)
-        .map(toPago)
-    : [];
   const canales = Array.isArray(resumen.distribucionMetodos)
     ? resumen.distribucionMetodos
         .filter((canal): canal is Record<string, unknown> => typeof canal === "object" && canal !== null)
@@ -112,7 +119,7 @@ export function DashboardIngresos() {
             </div>
           </div>
           <p className="mt-3 text-2xl font-bold font-mono text-stone-900">
-            {moneda(numero("recaudacionMes", "ingresosMes", "totalMes"))}
+            {moneda(totalMes)}
           </p>
           <p className="mt-1 text-xs text-emerald-600 font-semibold flex items-center gap-1">
             <TrendingUp className="h-3 w-3" /> {variacionIngresos}% vs mes previo
@@ -129,10 +136,10 @@ export function DashboardIngresos() {
             </div>
           </div>
           <p className="mt-3 text-2xl font-bold font-mono text-stone-900">
-            {moneda(numero("cajaHoy", "ingresosHoy", "ingresosDia"))}
+            {moneda(Number(renovacionesHoy.total ?? numero("cajaHoy")))}
           </p>
           <p className="mt-1 text-xs text-stone-500">
-            {ingresosHoy || numero("transaccionesHoy", "cantidadTransacciones")} transacciones registradas
+            {Number(renovacionesHoy.cantidad ?? numero("transaccionesHoy", "cantidadTransacciones"))} transacciones registradas
           </p>
         </div>
 
@@ -146,7 +153,7 @@ export function DashboardIngresos() {
             </div>
           </div>
           <p className="mt-3 text-2xl font-bold font-mono text-stone-900">
-            {moneda(numero("ticketPromedio", "promedioTicket"))}
+            {moneda(numero("ticketPromedio", "promedioTicket") || (cantidadMes ? totalMes / cantidadMes : 0))}
           </p>
           <p className="mt-1 text-xs text-stone-500">
             Calculado sobre datos del backend
