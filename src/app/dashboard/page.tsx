@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import DashboardSidebar from "@/componentes/dashboard/DashboardSidebar";
 import DashboardResumen from "@/componentes/dashboard/DashboardResumen";
 import DashboardSocios, { type Socio } from "@/componentes/dashboard/DashboardSocios";
@@ -9,7 +9,7 @@ import { DashboardConfiguracion } from "@/componentes/dashboard/DashboardConfig"
 import { DashboardMembresias } from "@/componentes/dashboard/DashboardMembresias";
 import { Users, DoorOpen, DollarSign, AlertCircle } from "lucide-react";
 
-const cards = [
+const defaultCards = [
   { label: "Socios activos", value: "1.248", detail: "+8% este mes", icon: Users, tone: "amber" },
   { label: "Ingresos del mes", value: "$185.400", detail: "Renovaciones cerradas", icon: DollarSign, tone: "emerald" },
   { label: "Membresías vencidas", value: "19", detail: "Requieren renovación", icon: AlertCircle, tone: "rose" },
@@ -37,10 +37,38 @@ const initialSocios: Socio[] = [
   { nombre: "Diego Salas", dni: "29876543", telefono: "381-9876543", plan: "Anual", estado: "Inactivo", vencimiento: "14/08/2026" },
 ];
 
+const toEstado = (value?: string | boolean | null): Socio["estado"] => {
+  if (value === false || value === "Inactivo") return "Inactivo";
+  if (value === "Suspendido") return "Suspendido";
+  return "Activo";
+};
+
+const toSocio = (raw: Record<string, unknown>): Socio => {
+  const nombre = String(raw.nombre ?? "");
+  const apellido = String(raw.apellido ?? "");
+  const nombreCompleto = [nombre, apellido].filter(Boolean).join(" ") || "Socio sin nombre";
+  const fecha = String(raw.fechaVencimiento ?? raw.vencimiento ?? "30/10/2026");
+  const formatearFecha = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  };
+
+  return {
+    nombre: nombreCompleto,
+    dni: String(raw.dni ?? ""),
+    telefono: String(raw.telefono ?? "-"),
+    plan: String(raw.plan ?? raw.tipoMembresia ?? raw.membresia ?? "Mensual"),
+    estado: toEstado(String(raw.estado ?? raw.status ?? (raw.activo === false ? "Inactivo" : "Activo"))),
+    vencimiento: formatearFecha(fecha),
+  };
+};
+
 export default function DashboardPage() {
   const [activeSection, setActiveSection] = useState("socios");
   const [socios, setSocios] = useState<Socio[]>(initialSocios);
   const [searchTerm, setSearchTerm] = useState("");
+  const [cards, setCards] = useState(defaultCards);
 
   const [form, setForm] = useState({
     nombre: "",
