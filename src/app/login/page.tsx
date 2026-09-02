@@ -134,7 +134,7 @@ export default function LoginPage() {
             <p className="text-xs text-zinc-500">
               ¿Aún no tienes cuenta?{" "}
               <Link
-                href="/register"
+                href="/registro"
                 className="font-bold text-amber-600 hover:text-amber-700 transition-colors uppercase tracking-wider ml-1"
               >
                 Regístrate aquí
