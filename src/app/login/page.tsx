@@ -17,6 +17,26 @@ import {
 import { loginAdmin } from "@/lib/api";
 import Swal from "sweetalert2";
 
+const Toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 2000,
+  timerProgressBar: true,
+  background: "#1c1a17",
+  color: "#ffffff",
+  customClass: {
+    popup:
+      "rounded-lg border border-stone-700 shadow-xl !py-2 !px-3 !min-h-0 !mt-24 !mr-4",
+    title: "!text-sm !font-semibold !m-0 !p-0 !pl-2",
+    icon: "!m-0 !scale-75 !border-0",
+  },
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  },
+});
+
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -57,11 +77,9 @@ export default function LoginPage() {
         window.dispatchEvent(new Event("auth-change"));
       }
 
-      await Swal.fire({
+      await Toast.fire({
         icon: "success",
         title: "Sesión iniciada",
-        timer: 1200,
-        showConfirmButton: false,
       });
       router.push("/dashboard");
     } catch (err: unknown) {
@@ -70,10 +88,11 @@ export default function LoginPage() {
           ? err.message
           : "No se pudo conectar con el servidor.";
       setError(message);
-      await Swal.fire({
+
+      // Reemplazado por la notificación tipo Toast para errores
+      await Toast.fire({
         icon: "error",
-        title: "No se pudo iniciar sesión",
-        text: message,
+        title: message,
       });
     } finally {
       setLoading(false);

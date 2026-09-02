@@ -14,6 +14,27 @@ import {
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
+const Toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 2000,
+  timerProgressBar: true,
+  background: "#1c1a17",
+  color: "#ffffff",
+
+  customClass: {
+    popup:
+      "rounded-md border border-stone-700 shadow-xl !py-2 !px-3 !min-h-0 !mt-24 !mr-4",
+    title: "!text-sm !font-semibold !m-0 !p-0 !pl-2",
+    icon: "!m-0 !scale-75 !border-0",
+  },
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  },
+});
+
 export default function Navbar() {
   const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(false);
@@ -30,25 +51,16 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    const result = await Swal.fire({
-      icon: "question",
-      title: "¿Cerrar sesión?",
-      showCancelButton: true,
-      confirmButtonText: "Cerrar sesión",
-      cancelButtonText: "Cancelar",
-    });
-    if (!result.isConfirmed) return;
-
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
     setLoggedIn(false);
     window.dispatchEvent(new Event("auth-change"));
-    await Swal.fire({
+
+    await Toast.fire({
       icon: "success",
-      title: "Sesión cerrada",
-      timer: 1200,
-      showConfirmButton: false,
+      title: "Sesión cerrada exitosamente!",
     });
+
     router.push("/login");
   };
 
