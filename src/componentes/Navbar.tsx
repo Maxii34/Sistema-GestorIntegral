@@ -2,53 +2,28 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <header className="sticky top-0 z-50 w-full bg-zinc-950 border-b border-zinc-800 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand / Logo */}
-        <Link
-          href="/"
-          className="text-xl font-black italic tracking-wider text-amber-500 uppercase"
-        >
-          Iron<span className="text-white">Gym</span>
+    <header className="sticky top-0 z-50 w-full border-b border-stone-200/80 bg-[#171614]/95 backdrop-blur-xl text-white shadow-[0_10px_30px_rgba(17,17,17,0.12)]">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-2 text-xl font-black uppercase tracking-[0.22em] text-amber-400">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-amber-400/60 bg-amber-400/10 text-sm text-amber-300">
+            IG
+          </span>
+          <span>
+            Iron<span className="text-stone-100">Gym</span>
+          </span>
         </Link>
 
-        {/* Navegación Principal */}
-        <nav className="flex items-center gap-6 text-sm font-medium">
-          <Link
-            href="/"
-            className="text-zinc-300 hover:text-amber-500 transition-colors"
-          >
-            Inicio
-          </Link>
-
-          <Link
-            href="/ingreso"
-            className="text-zinc-300 hover:text-amber-500 transition-colors"
-          >
-            Ingreso
-          </Link>
-
-          <Link
-            href="/dashboard"
-            className="text-zinc-300 hover:text-amber-500 transition-colors"
-          >
-            Dashboard
-          </Link>
+        <nav className="hidden items-center gap-7 text-sm font-semibold text-stone-300 md:flex">
+          <Link href="/" className="transition hover:text-amber-300">Inicio</Link>
+          <Link href="/ingreso" className="transition hover:text-amber-300">Ingreso</Link>
+          <Link href="/dashboard" className="transition hover:text-amber-300">Dashboard</Link>
         </nav>
 
-        {/* Botones de Autenticación */}
         <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="text-sm font-semibold px-4 py-2 text-zinc-300 hover:text-white transition-colors"
-          >
+          <Link href="/login" className="rounded-full border border-stone-700 px-4 py-2 text-sm font-semibold text-stone-200 transition hover:border-amber-400 hover:text-amber-300">
             Login
           </Link>
-
-          <Link
-            href="/registro"
-            className="text-sm font-bold px-4 py-2 bg-amber-500 hover:bg-amber-400 text-zinc-950 rounded-md transition-colors uppercase tracking-wide"
-          >
+          <Link href="/registro" className="rounded-full bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2 text-sm font-black uppercase tracking-[0.12em] text-stone-950 shadow-[0_8px_25px_rgba(217,164,65,0.35)] transition hover:brightness-110">
             Register
           </Link>
         </div>

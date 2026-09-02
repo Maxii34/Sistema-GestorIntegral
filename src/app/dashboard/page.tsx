@@ -85,21 +85,21 @@ export default function DashboardPage() {
     <>
       <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-amber-600">Panel</p>
-          <h1 className="mt-2 text-3xl font-black uppercase tracking-tight text-zinc-900 sm:text-4xl">
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-amber-600">Panel</p>
+          <h1 className="mt-2 text-3xl font-black uppercase tracking-tighter text-zinc-900 sm:text-4xl">
             Dashboard general
           </h1>
         </div>
-        <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
+        <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">
           Actualizado hace 5 min
         </span>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
-          <div key={card.label} className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <div key={card.label} className="rounded-3xl border border-stone-200 bg-white/90 p-5 shadow-lg backdrop-blur-sm">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">{card.label}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-500">{card.label}</span>
               <span
                 className={`h-3 w-3 rounded-full ${
                   card.tone === "amber"
@@ -118,13 +118,13 @@ export default function DashboardPage() {
       </div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-        <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <section className="rounded-[1.75rem] border border-stone-200 bg-white/85 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur-sm">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-lg font-black uppercase tracking-wide text-zinc-900">Últimos ingresos</h2>
-            <button className="text-xs font-bold uppercase tracking-wide text-amber-600">Ver historial</button>
+            <button className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">Ver historial</button>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-zinc-200">
+          <div className="overflow-hidden rounded-2xl border border-stone-200">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-zinc-100 text-zinc-600">
                 <tr>
@@ -159,24 +159,24 @@ export default function DashboardPage() {
         </section>
 
         <aside className="space-y-6">
-          <section className="rounded-3xl border border-zinc-200 bg-zinc-950 p-6 text-white shadow-sm">
+          <section className="rounded-3xl border border-stone-200 bg-zinc-950 p-6 text-white shadow-xl">
             <h2 className="text-lg font-black uppercase tracking-wide text-white">Distribución por planes</h2>
             <div className="mt-6 space-y-4">
               {plansSummary.map((plan) => (
                 <div key={plan.nombre}>
-                  <div className="mb-1 flex items-center justify-between text-sm text-zinc-300">
+                  <div className="mb-1 flex items-center justify-between text-sm text-stone-300">
                     <span>{plan.nombre}</span>
                     <span>{plan.total}</span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
-                    <div className="h-full rounded-full bg-amber-500" style={{ width: `${(plan.total / 540) * 100}%` }} />
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-stone-800">
+                    <div className="h-full rounded-full bg-linear-to-r from-amber-400 to-amber-500" style={{ width: `${(plan.total / 540) * 100}%` }} />
                   </div>
                 </div>
               ))}
             </div>
           </section>
 
-          <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <section className="rounded-[1.75rem] border border-stone-200 bg-white/85 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur-sm">
             <h2 className="text-lg font-black uppercase tracking-wide text-zinc-900">Estado general</h2>
             <div className="mt-5 space-y-4">
               <div className="flex items-center justify-between rounded-2xl bg-emerald-50 p-3">
@@ -202,20 +202,20 @@ export default function DashboardPage() {
     <>
       <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-amber-600">Socios</p>
-          <h1 className="mt-2 text-3xl font-black uppercase tracking-tight text-zinc-900 sm:text-4xl">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-amber-600">Socios</p>
+          <h1 className="mt-2 text-3xl font-black uppercase tracking-tighter text-zinc-900 sm:text-4xl">
             Gestión de miembros
           </h1>
         </div>
-        <span className="inline-flex items-center rounded-full bg-zinc-900 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-white">
+        <span className="inline-flex items-center rounded-full bg-[#171614] px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-white">
           {socios.length} registrados
         </span>
       </div>
 
-      <section className="mb-8 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <section className="mb-8 rounded-3xl border border-stone-200 bg-white/90 p-6 shadow-lg backdrop-blur-sm">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-black uppercase tracking-wide text-zinc-900">Agregar socio</h2>
-          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-amber-700">
+          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">
             Nuevo ingreso
           </span>
         </div>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
               name="nombre"
               value={form.nombre}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
+              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
               placeholder="Ej: Carlos"
             />
           </label>
@@ -238,7 +238,7 @@ export default function DashboardPage() {
               name="apellido"
               value={form.apellido}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
+              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
               placeholder="Ej: Ruiz"
             />
           </label>
@@ -249,7 +249,7 @@ export default function DashboardPage() {
               name="dni"
               value={form.dni}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
+              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
               placeholder="40123456"
             />
           </label>
@@ -260,7 +260,7 @@ export default function DashboardPage() {
               name="telefono"
               value={form.telefono}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
+              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
               placeholder="381-1234567"
             />
           </label>
@@ -271,7 +271,7 @@ export default function DashboardPage() {
               name="plan"
               value={form.plan}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
+              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
             >
               <option>Mensual</option>
               <option>Trimestral</option>
@@ -286,7 +286,7 @@ export default function DashboardPage() {
               name="estado"
               value={form.estado}
               onChange={handleChange}
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
+              className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-amber-400 focus:bg-white"
             >
               <option>Activo</option>
               <option>Suspendido</option>
@@ -297,7 +297,7 @@ export default function DashboardPage() {
           <div className="md:col-span-2 flex justify-end">
             <button
               type="submit"
-              className="rounded-xl bg-amber-500 px-6 py-3 text-sm font-black uppercase tracking-wide text-zinc-950 transition hover:bg-amber-400"
+              className="rounded-full bg-linear-to-r from-amber-400 to-amber-500 px-6 py-3 text-sm font-black uppercase tracking-[0.16em] text-stone-950 shadow-[0_10px_24px_rgba(217,164,65,0.35)] transition hover:brightness-110"
             >
               Guardar socio
             </button>
@@ -305,10 +305,10 @@ export default function DashboardPage() {
         </form>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
+      <section className="overflow-hidden rounded-3xl border border-stone-200 bg-white/90 shadow-lg backdrop-blur-sm">
+        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4">
           <h2 className="text-lg font-black uppercase tracking-wide text-zinc-900">Listado de socios</h2>
-          <button className="text-xs font-bold uppercase tracking-wide text-amber-600">Filtrar</button>
+          <button className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">Filtrar</button>
         </div>
 
         <div className="overflow-x-auto">
@@ -403,13 +403,13 @@ export default function DashboardPage() {
   );
 
   return (
-    <main className="min-h-[calc(100vh-130px)] bg-zinc-100 px-4 py-10 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100vh-130px)] bg-transparent px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="rounded-3xl border border-zinc-200 bg-zinc-950 p-5 text-white shadow-sm">
+          <aside className="rounded-3xl border border-stone-200 bg-zinc-950 p-5 text-white shadow-2xl">
             <div className="mb-8">
-              <p className="text-xs font-black uppercase tracking-[0.28em] text-amber-400">Force Gym</p>
-              <h2 className="mt-2 text-xl font-black uppercase tracking-tight">Administración</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-300">Force Gym</p>
+              <h2 className="mt-2 text-xl font-black uppercase tracking-tight text-stone-100">Administración</h2>
             </div>
 
             <nav className="space-y-2">
@@ -418,10 +418,10 @@ export default function DashboardPage() {
                   key={item.key}
                   type="button"
                   onClick={() => setActiveSection(item.key)}
-                  className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-bold uppercase tracking-wide transition ${
+                  className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-bold uppercase tracking-[0.12em] transition ${
                     activeSection === item.key
-                      ? "bg-amber-500 text-zinc-950"
-                      : "bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                      ? "bg-linear-to-r from-amber-400 to-amber-500 text-stone-950 shadow-[0_12px_25px_rgba(217,164,65,0.3)]"
+                      : "bg-[#221f1d] text-stone-300 hover:bg-[#2a2624] hover:text-white"
                   }`}
                 >
                   <span>{item.label}</span>
@@ -430,8 +430,8 @@ export default function DashboardPage() {
               ))}
             </nav>
 
-            <div className="mt-8 rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">Estado</p>
+            <div className="mt-8 rounded-2xl border border-stone-800 bg-zinc-900 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-stone-400">Estado</p>
               <p className="mt-2 text-lg font-black text-emerald-400">Sistema activo</p>
             </div>
           </aside>
