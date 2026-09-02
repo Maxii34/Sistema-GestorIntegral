@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   UserCheck,
 } from "lucide-react";
+import { verificarVencimientos } from "@/lib/api";
 
 export function DashboardConfiguracion() {
   const [cronLoading, setCronLoading] = useState(false);
@@ -16,10 +17,8 @@ export function DashboardConfiguracion() {
     setCronLoading(true);
     setCronResult(null);
     try {
-      const res = await fetch("http://localhost:3001/api/usuarios/verificar-vencimientos", {
-        method: "POST",
-      });
-      const data = await res.json();
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const data = await verificarVencimientos(token);
       setCronResult(
         `Verificación completada: ${data.usuariosDesactivados ?? 0} socios dados de baja.`
       );
