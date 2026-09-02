@@ -241,7 +241,7 @@ export default async function Home() {
             <span className="text-xs font-bold uppercase tracking-widest text-amber-400">
               Catálogo
             </span>
-            <h2 className="mt-2 text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">
+            <h2 className="mt-2 text-2xl sm:text-3xl font-black uppercase tracking-tight text-white text-center sm:text-left">
               Membresías Disponibles
             </h2>
           </div>

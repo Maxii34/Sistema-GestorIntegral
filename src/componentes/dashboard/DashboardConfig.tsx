@@ -1,9 +1,5 @@
 import { useState } from "react";
-import {
-  Play,
-  CheckCircle2,
-  RefreshCw,
-} from "lucide-react";
+import { Play, CheckCircle2, RefreshCw } from "lucide-react";
 import { verificarVencimientos } from "@/lib/api";
 import Swal from "sweetalert2";
 
@@ -15,14 +11,25 @@ export function DashboardConfiguracion() {
     setCronLoading(true);
     setCronResult(null);
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
       const data = await verificarVencimientos(token);
       setCronResult(
-        `Verificación completada: ${data.usuariosDesactivados ?? 0} socios dados de baja.`
+        `Verificación completada: ${data.usuariosDesactivados ?? 0} socios dados de baja.`,
       );
-      await Swal.fire({ icon: "success", title: "Verificación completada", text: `${data.usuariosDesactivados ?? 0} socios dados de baja.`, timer: 1800, showConfirmButton: false });
+      await Swal.fire({
+        icon: "success",
+        title: "Verificación completada",
+        text: `${data.usuariosDesactivados ?? 0} socios dados de baja.`,
+        timer: 1800,
+        showConfirmButton: false,
+      });
     } catch {
-      await Swal.fire({ icon: "error", title: "Error de conexión", text: "No se pudo contactar con el servidor." });
+      await Swal.fire({
+        icon: "error",
+        title: "Error de conexión",
+        text: "No se pudo contactar con el servidor.",
+      });
       setCronResult("Error al contactar con el servidor.");
     } finally {
       setCronLoading(false);
@@ -36,7 +43,8 @@ export function DashboardConfiguracion() {
           Configuración y Administración
         </h1>
         <p className="text-sm text-stone-500">
-          Control de operadores de sistema y mantenimiento de membresías activas.
+          Control de operadores de sistema y mantenimiento de membresías
+          activas.
         </p>
       </div>
 
@@ -52,7 +60,8 @@ export function DashboardConfiguracion() {
                   Control de Vencimientos
                 </h2>
                 <p className="text-xs text-stone-500">
-                  Revisa el padrón y suspende automáticamente a los socios con fecha expirada.
+                  Revisa el padrón y suspende automáticamente a los socios con
+                  fecha expirada.
                 </p>
               </div>
             </div>
@@ -63,8 +72,8 @@ export function DashboardConfiguracion() {
           </div>
 
           <p className="text-xs text-stone-600 leading-relaxed">
-            Podés forzar una comprobación manual en cualquier momento del día si necesitás actualizar
-            el estado de acceso del molinete de inmediato.
+            Podés forzar una comprobación manual en cualquier momento del día si
+            necesitás actualizar el estado de acceso del molinete de inmediato.
           </p>
 
           <div className="pt-1 flex items-center gap-3">
@@ -73,8 +82,14 @@ export function DashboardConfiguracion() {
               disabled={cronLoading}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white px-5 py-2.5 text-xs font-bold transition active:scale-95 disabled:opacity-50 cursor-pointer"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${cronLoading ? "animate-spin" : ""}`} />
-              <span>{cronLoading ? "Verificando padrón..." : "Verificar Vencimientos Ahora"}</span>
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${cronLoading ? "animate-spin" : ""}`}
+              />
+              <span>
+                {cronLoading
+                  ? "Verificando padrón..."
+                  : "Verificar Vencimientos Ahora"}
+              </span>
             </button>
           </div>
 
@@ -84,23 +99,6 @@ export function DashboardConfiguracion() {
               <span>{cronResult}</span>
             </div>
           )}
-        </div>
-
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-stone-100 pb-4">
-            <div>
-              <h2 className="text-base font-bold text-stone-900">
-                Operadores de Sistema
-              </h2>
-              <p className="text-xs text-stone-500">
-                La API de administradores no expone aún un listado para esta sección.
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-stone-100 bg-stone-50 px-4 py-6 text-center text-xs text-stone-500">
-            No hay datos de operadores disponibles.
-          </div>
         </div>
       </div>
     </div>

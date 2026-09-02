@@ -101,10 +101,6 @@ export function DashboardIngresos() {
             Arqueo financiero, renovaciones de membresías y balance mensual.
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2 text-xs font-semibold text-stone-700 shadow-xs hover:bg-stone-50 transition cursor-pointer">
-          <ArrowDownToLine className="h-3.5 w-3.5 text-stone-500" />
-          <span>Exportar Resumen (CSV)</span>
-        </button>
       </div>
 
       {/* Tarjetas Superiores */}
