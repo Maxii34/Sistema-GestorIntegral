@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import { logoutAdmin } from "@/lib/api";
 
 const Toast = Swal.mixin({
   toast: true,
@@ -51,10 +52,20 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("usuario");
-    setLoggedIn(false);
-    window.dispatchEvent(new Event("auth-change"));
+    const token = localStorage.getItem("token");
+
+    try {
+      if (token) {
+        await logoutAdmin(token);
+      }
+    } catch (error) {
+      console.error("No se pudo cerrar la sesión en el servidor.", error);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("usuario");
+      setLoggedIn(false);
+      window.dispatchEvent(new Event("auth-change"));
+    }
 
     await Toast.fire({
       icon: "success",

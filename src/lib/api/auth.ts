@@ -33,6 +33,13 @@ export async function loginAdmin(payload: LoginPayload) {
   });
 }
 
+export async function logoutAdmin(token?: string | null) {
+  return apiRequest<void>("/api/admin/logout", {
+    method: "POST",
+    headers: getAuthHeaders(token),
+  });
+}
+
 export async function registerAdmin(payload: RegisterAdminPayload, token?: string | null) {
   return apiRequest<LoginResponse>("/api/admin/crear", {
     method: "POST",
