@@ -18,8 +18,14 @@ export default function MembershipCarousel({ planes }: { planes: Plan[] }) {
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const desplazar = (direccion: "izquierda" | "derecha") => {
-    carouselRef.current?.scrollBy({
-      left: direccion === "derecha" ? 344 : -344,
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    carousel.scrollBy({
+      left:
+        direccion === "derecha"
+          ? carousel.clientWidth + 24
+          : -(carousel.clientWidth + 24),
       behavior: "smooth",
     });
   };
@@ -38,7 +44,7 @@ export default function MembershipCarousel({ planes }: { planes: Plan[] }) {
         type="button"
         onClick={() => desplazar("izquierda")}
         aria-label="Ver membresías anteriores"
-        className="absolute left-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-stone-700 bg-stone-900/90 p-2 text-stone-200 shadow-lg transition hover:border-amber-400 hover:text-amber-400 sm:block"
+        className="absolute left-2 top-1/2 z-10 block -translate-y-1/2 rounded-full border border-stone-700 bg-stone-900/90 p-2 text-stone-200 shadow-lg transition hover:border-amber-400 hover:text-amber-400"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
@@ -50,7 +56,7 @@ export default function MembershipCarousel({ planes }: { planes: Plan[] }) {
         {planes.map((plan) => (
           <article
             key={plan.id}
-            className="relative flex min-w-70 shrink-0 snap-center flex-col justify-between rounded-2xl border border-stone-800/80 bg-[#1c1a17] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-stone-700 sm:min-w-80"
+            className="relative flex min-w-full shrink-0 snap-center flex-col justify-between rounded-2xl border border-stone-800/80 bg-[#1c1a17] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-stone-700 sm:min-w-80"
           >
           <div>
             <div className="flex items-center justify-between gap-3">
@@ -100,7 +106,7 @@ export default function MembershipCarousel({ planes }: { planes: Plan[] }) {
         type="button"
         onClick={() => desplazar("derecha")}
         aria-label="Ver más membresías"
-        className="absolute right-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-stone-700 bg-stone-900/90 p-2 text-stone-200 shadow-lg transition hover:border-amber-400 hover:text-amber-400 sm:block"
+        className="absolute right-2 top-1/2 z-10 block -translate-y-1/2 rounded-full border border-stone-700 bg-stone-900/90 p-2 text-stone-200 shadow-lg transition hover:border-amber-400 hover:text-amber-400"
       >
         <ChevronRight className="h-5 w-5" />
       </button>
