@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mi Proyecto",
-  description: "Descripción de mi proyecto",
+  title: "IronGym",
+  description: "Sistema de gestión para gimnasios",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

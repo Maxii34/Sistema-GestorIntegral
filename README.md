@@ -1,7 +1,7 @@
 
 <div align="center">
 
-# ForceGym
+# IronGym
 
 ### Panel web para la gestión integral de gimnasios
 
@@ -17,7 +17,7 @@ Controlá socios, membresías, renovaciones, ingresos y vencimientos desde una i
 
 ## Descripción
 
-ForceGym es una aplicación web para operadores y administradores de gimnasios. El frontend se comunica con una API REST para administrar el padrón de socios, los planes de membresía, las renovaciones y los datos financieros del dashboard.
+IronGym es una aplicación web para operadores y administradores de gimnasios. El frontend se comunica con una API REST para administrar el padrón de socios, los planes de membresía, las renovaciones y los datos financieros del dashboard.
 
 ## Funcionalidades
 
