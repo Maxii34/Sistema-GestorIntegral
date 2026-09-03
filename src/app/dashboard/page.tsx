@@ -364,7 +364,9 @@ export default function DashboardPage() {
         },
         token,
       );
+      window.dispatchEvent(new Event("dashboard-data-change"));
       await cargarSocios();
+      await cargarResumen();
       await Swal.fire({
         icon: "success",
         title: "Socio registrado",
@@ -407,7 +409,9 @@ export default function DashboardPage() {
       try {
         const token = localStorage.getItem("token");
         await eliminarUsuario(dni, token);
+        window.dispatchEvent(new Event("dashboard-data-change"));
         await cargarSocios();
+        await cargarResumen();
         await Swal.fire({
           icon: "success",
           title: "Socio eliminado",
@@ -452,7 +456,9 @@ export default function DashboardPage() {
         },
         token,
       );
+      window.dispatchEvent(new Event("dashboard-data-change"));
       await cargarSocios();
+      await cargarResumen();
       setRenovarModal({ open: false, socio: null });
       await Swal.fire({
         icon: "success",
