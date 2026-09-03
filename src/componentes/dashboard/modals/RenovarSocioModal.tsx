@@ -8,9 +8,15 @@ type RenovarSocioModalProps = {
     dni: string;
   };
   form: {
-    pagoMensual: number | "";
-    tipoMembresia: string;
+    membresia: string;
   };
+  membresias: Array<{
+    _id: string;
+    nombre: string;
+    precio: number;
+    duracionDias: number;
+    activa: boolean;
+  }>;
   onChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
@@ -21,6 +27,7 @@ type RenovarSocioModalProps = {
 export default function RenovarSocioModal({
   socio,
   form,
+  membresias,
   onChange,
   onClose,
   onSubmit,
@@ -58,31 +65,19 @@ export default function RenovarSocioModal({
               Membresía / Período
             </label>
             <select
-              name="tipoMembresia"
-              value={form.tipoMembresia}
-              onChange={onChange}
-              className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-amber-500 focus:outline-none"
-            >
-              <option value="mensual">Mensual (30 días)</option>
-              <option value="trimestral">Trimestral (90 días)</option>
-              <option value="semestral">Semestral (180 días)</option>
-              <option value="anual">Anual (365 días)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-stone-700 mb-1">
-              Importe Abonado ($ ARS)
-            </label>
-            <input
-              type="number"
-              name="pagoMensual"
-              min="1"
-              value={form.pagoMensual}
+              name="membresia"
+              value={form.membresia}
               onChange={onChange}
               required
-              className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-mono text-stone-900 focus:border-amber-500 focus:outline-none"
-            />
+              className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 focus:border-amber-500 focus:outline-none"
+            >
+              <option value="">Seleccionar membresía</option>
+              {membresias.filter((membresia) => membresia.activa).map((membresia) => (
+                <option key={membresia._id} value={membresia._id}>
+                  {membresia.nombre} - ${membresia.precio.toLocaleString("es-AR")} ({membresia.duracionDias} días)
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-stone-100">

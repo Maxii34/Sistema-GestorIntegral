@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import DashboardSidebar from "@/componentes/dashboard/DashboardSidebar";
 import DashboardResumen from "@/componentes/dashboard/DashboardResumen";
-import DashboardSocios, { type Socio } from "@/componentes/dashboard/DashboardSocios";
+import DashboardSocios, { type Membresia, type Socio } from "@/componentes/dashboard/DashboardSocios";
 import { DashboardIngresos } from "@/componentes/dashboard/DashboardExtras";
 import { DashboardConfiguracion } from "@/componentes/dashboard/DashboardConfig";
 import { DashboardMembresias } from "@/componentes/dashboard/DashboardMembresias";
@@ -16,15 +16,9 @@ import {
   getUsuarios,
   getResumenDashboard,
   getDetalleIngresosHoy,
+  getMembresias,
   renovarUsuario,
 } from "@/lib/api";
-
-const PLANES_VALIDOS = ["mensual", "trimestral", "semestral", "anual"] as const;
-
-const normalizarPlan = (plan: string): string => {
-  const limpio = plan.toLowerCase().trim();
-  return PLANES_VALIDOS.find((p) => limpio.includes(p)) ?? "mensual";
-};
 
 const toEstado = (value?: string | boolean | null): Socio["estado"] => {
   const estado = typeof value === "string" ? value.toLowerCase() : value;
@@ -44,16 +38,27 @@ const toSocio = (raw: Record<string, unknown>): Socio => {
     return date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
   };
 
+  const membresiaRaw = raw.membresia ?? raw.membrecia;
+  const membresia = typeof membresiaRaw === "object" && membresiaRaw !== null
+    ? membresiaRaw as Record<string, unknown>
+    : null;
+  const membresiaNombre = membresia
+    ? String(membresia.nombre ?? "Sin membresía")
+    : String(membresiaRaw ?? "Sin membresía");
+  const membresiaId = membresia
+    ? String(membresia._id ?? membresia.id ?? "")
+    : membresiaNombre;
+
   return {
     nombre: nombreCompleto,
     apellido,
     dni: String(raw.dni ?? ""),
     telefono: String(raw.telefono ?? "-"),
-    plan: String(raw.plan ?? raw.tipoMembresia ?? raw.membresia ?? "Sin plan"),
+    membresia: membresiaNombre,
+    membresiaId,
+    plan: membresiaNombre,
     estado: toEstado(String(raw.estado ?? raw.status ?? (raw.activo === false ? "Inactivo" : "Activo"))),
     vencimiento: formatearFecha(fecha),
-    // 👇 nuevo: ajustá "pagoMensual"/"cuota" al nombre real que devuelva tu backend
-    pagoMensual: Number(raw.pagoMensual ?? raw.cuota ?? raw.monto ?? 0),
   };
 };
 
@@ -62,6 +67,7 @@ export default function DashboardPage() {
   const [authReady, setAuthReady] = useState(false);
   const [activeSection, setActiveSection] = useState("socios");
   const [socios, setSocios] = useState<Socio[]>([]);
+  const [membresias, setMembresias] = useState<Membresia[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [resumen, setResumen] = useState<Record<string, unknown>>({});
   const [recentEntries, setRecentEntries] = useState<Array<{ nombre: string; dni: string; ingreso: string; estado: string }>>([]);
@@ -72,9 +78,7 @@ export default function DashboardPage() {
     apellido: "",
     dni: "",
     telefono: "",
-    pagoMensual: 15000,
-    plan: "mensual",
-    estado: "Activo" as "Activo" | "Suspendido" | "Inactivo",
+    membresia: "",
   });
 
   const [renovarModal, setRenovarModal] = useState<{ open: boolean; socio: Socio | null }>({
@@ -83,8 +87,7 @@ export default function DashboardPage() {
   });
 
   const [renovacionForm, setRenovacionForm] = useState({
-    pagoMensual: 15000 as number | "",
-    tipoMembresia: "mensual",
+    membresia: "",
   });
 
   const sociosActivos = useMemo(
@@ -182,6 +185,22 @@ export default function DashboardPage() {
     }
   };
 
+  const cargarMembresias = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const data = await getMembresias(token);
+      setMembresias(data.map((raw) => ({
+        _id: String(raw._id ?? raw.id ?? ""),
+        nombre: String(raw.nombre ?? "Membresía sin nombre"),
+        precio: Number(raw.precio ?? 0),
+        duracionDias: Number(raw.duracionDias ?? raw.duracion ?? 0),
+        activa: raw.activa !== false,
+      })));
+    } catch (error) {
+      setSociosError(error instanceof Error ? error.message : "No se pudieron cargar las membresías.");
+    }
+  };
+
   useEffect(() => {
     if (!localStorage.getItem("token")) {
       router.replace("/login");
@@ -191,6 +210,7 @@ export default function DashboardPage() {
     const timeoutId = window.setTimeout(() => {
       void cargarSocios();
       void cargarResumen();
+      void cargarMembresias();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
@@ -200,7 +220,7 @@ export default function DashboardPage() {
     const { name, value } = event.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === "pagoMensual" ? (value === "" ? 0 : Number(value)) : value,
+      [name]: value,
     }));
   };
 
@@ -214,9 +234,11 @@ export default function DashboardPage() {
     try {
       const token = localStorage.getItem("token");
       await crearUsuario({
-        ...form,
-        tipoMembresia: form.plan,
-        estado: form.estado.toLowerCase(),
+        nombre: form.nombre,
+        apellido: form.apellido,
+        dni: form.dni,
+        telefono: form.telefono,
+        membresia: form.membresia,
       }, token);
       await cargarSocios();
       await Swal.fire({ icon: "success", title: "Socio registrado", text: "El socio fue agregado correctamente.", timer: 1800, showConfirmButton: false });
@@ -225,9 +247,7 @@ export default function DashboardPage() {
         apellido: "",
         dni: "",
         telefono: "",
-        pagoMensual: 15000,
-        plan: "mensual",
-        estado: "Activo",
+        membresia: "",
       });
     } catch (error) {
       await Swal.fire({ icon: "error", title: "No se pudo registrar", text: error instanceof Error ? error.message : "Error del servidor." });
@@ -260,15 +280,14 @@ export default function DashboardPage() {
 
   const handleRenovarSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!renovarModal.socio || renovacionForm.pagoMensual === "") return;
+    if (!renovarModal.socio || !renovacionForm.membresia) return;
 
     try {
       const token = localStorage.getItem("token");
       await renovarUsuario(
         {
           dni: renovarModal.socio.dni,
-          pagoMensual: renovacionForm.pagoMensual,
-          tipoMembresia: renovacionForm.tipoMembresia,
+          membresia: renovacionForm.membresia,
         },
         token,
       );
@@ -287,7 +306,7 @@ export default function DashboardPage() {
     const { name, value } = event.target;
     setRenovacionForm((prev) => ({
       ...prev,
-      [name]: name === "pagoMensual" ? (value === "" ? "" : Number(value)) : value,
+      [name]: value,
     }));
   };
 
@@ -326,9 +345,7 @@ export default function DashboardPage() {
                 apellido: "",
                 dni: "",
                 telefono: "",
-                pagoMensual: 15000,
-                plan: "mensual",
-                estado: "Activo",
+                membresia: "",
               })
             }
             onSubmit={handleSubmit}
@@ -336,11 +353,11 @@ export default function DashboardPage() {
             onOpenRenovar={(socio) => {
               setRenovarModal({ open: true, socio });
               setRenovacionForm({
-                pagoMensual: socio.pagoMensual,
-                tipoMembresia: normalizarPlan(socio.plan),
+                membresia: socio.membresiaId ?? "",
               });
             }}
             renovacionForm={renovacionForm}
+            membresias={membresias}
             onRenovacionFormChange={handleRenovacionChange}
             renovarModal={renovarModal}
             onCloseRenovarModal={() => setRenovarModal({ open: false, socio: null })}

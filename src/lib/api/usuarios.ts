@@ -6,10 +6,7 @@ export type UsuarioPayload = {
   dni?: string;
   telefono?: string;
   email?: string;
-  plan?: string;
-  tipoMembresia?: string;
-  pagoMensual?: number;
-  estado?: string;
+  membresia?: string;
   fechaVencimiento?: string;
 };
 

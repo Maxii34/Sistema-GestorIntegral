@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Search,
   Filter,
@@ -6,56 +8,79 @@ import {
   IdCard,
   Phone,
   CreditCard,
-  DollarSign,
   Calendar,
   UserCheck,
   AlertCircle,
   RefreshCw,
   Trash2,
 } from "lucide-react";
+
 import RenovarSocioModal from "@/componentes/dashboard/modals/RenovarSocioModal";
+
+export type Membresia = {
+  _id: string;
+  nombre: string;
+  precio: number;
+  duracionDias: number;
+  activa: boolean;
+};
 
 export type Socio = {
   nombre: string;
   apellido: string;
   dni: string;
   telefono: string;
+  membresia: string;
+  membresiaId?: string;
   plan: string;
   estado: "Activo" | "Suspendido" | "Inactivo";
   vencimiento: string;
-  pagoMensual: number;
 };
 
 type DashboardSociosProps = {
   socios: Socio[];
   sociosActivos: number;
+
   searchTerm: string;
   onSearchChange: (value: string) => void;
+
   form: {
     nombre: string;
     apellido: string;
     dni: string;
     telefono: string;
-    pagoMensual: number;
-    plan: string;
-    estado: "Activo" | "Suspendido" | "Inactivo";
+    membresia: string;
   };
+
   onFormChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
+
   onFormReset: () => void;
+
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+
   onDeleteSocio: (dni: string) => void;
+
   onOpenRenovar: (socio: Socio) => void;
+
   renovacionForm: {
-    pagoMensual: number | "";
-    tipoMembresia: string;
+    membresia: string;
   };
+
+  membresias: Membresia[];
+
   onRenovacionFormChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
-  renovarModal: { open: boolean; socio: Socio | null };
+
+  renovarModal: {
+    open: boolean;
+    socio: Socio | null;
+  };
+
   onCloseRenovarModal: () => void;
+
   onRenovarSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 };
 
@@ -64,6 +89,7 @@ export default function DashboardSocios({
   sociosActivos,
   searchTerm,
   onSearchChange,
+  membresias,
   form,
   onFormChange,
   onFormReset,
@@ -76,365 +102,450 @@ export default function DashboardSocios({
   onCloseRenovarModal,
   onRenovarSubmit,
 }: DashboardSociosProps) {
-  const filteredSocios = socios.filter(
-    (socio) =>
-      socio.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      socio.dni.includes(searchTerm),
+  const sociosFiltrados = socios.filter((socio) => {
+    const termino = searchTerm.toLowerCase().trim();
+
+    return (
+      socio.nombre.toLowerCase().includes(termino) ||
+      socio.apellido.toLowerCase().includes(termino) ||
+      socio.dni.toLowerCase().includes(termino)
+    );
+  });
+
+  const membresiaSeleccionada = membresias.find(
+    (membresia) => membresia._id === form.membresia,
   );
 
+  const formatearPrecio = (precio: number) => {
+    return `$${precio.toLocaleString("es-AR")}`;
+  };
+
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-stone-200 pb-5">
+    <div className="space-y-6">
+      {/* HEADER */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-stone-900">
-            Padrón de Socios
-          </h1>
-          <p className="text-sm text-stone-500">
-            Altas, control de accesos, vigencia y renovaciones directas al
-            backend.
+          <h1 className="text-2xl font-bold text-stone-900">Padrón de Socios</h1>
+
+          <p className="mt-1 text-sm text-stone-500">
+            Gestión de socios y membresías del gimnasio.
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
-          <span className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-xs">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            {sociosActivos} Habilitados
-          </span>
-          <span className="rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-bold text-stone-600">
-            {socios.length} Totales
-          </span>
+
+        <div className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-xs">
+          <UserCheck className="h-5 w-5 text-green-600" />
+
+          <div>
+            <p className="text-xs text-stone-500">Socios activos</p>
+
+            <p className="text-lg font-bold text-stone-900">{sociosActivos}</p>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-stone-200 bg-white shadow-xs overflow-hidden">
-        <div className="border-b border-stone-100 bg-stone-50/60 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-700">
-                <Plus className="h-4 w-4" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-stone-900">
-                  Registrar Nuevo Socio
-                </h2>
-                <p className="text-xs text-stone-500">
-                  Genera el alta y habilita la entrada en el molinete.
-                </p>
-              </div>
-            </div>
-            <span className="text-[11px] font-semibold text-stone-400 font-mono">
-              POST /api/usuarios
-            </span>
+      {/* BUSCADOR */}
+      <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
+        <div className="flex flex-col gap-3 md:flex-row">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-stone-400" />
+
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Buscar por nombre, apellido o DNI..."
+              className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pl-10 pr-4 text-sm text-stone-900 outline-none transition focus:border-green-500 focus:bg-white"
+            />
+          </div>
+
+          <button
+            type="button"
+            className="flex items-center justify-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100"
+          >
+            <Filter className="h-4 w-4" />
+            Filtrar
+          </button>
+        </div>
+      </div>
+
+      {/* FORMULARIO */}
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/10">
+            <Plus className="h-5 w-5 text-green-600" />
+          </div>
+
+          <div>
+            <h2 className="text-lg font-semibold text-stone-900">
+              Registrar Nuevo Socio
+            </h2>
+
+            <p className="text-sm text-stone-500">
+              Completa los datos del nuevo socio.
+            </p>
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="p-6 space-y-6">
+        <form onSubmit={onSubmit} className="space-y-6">
+          {/* DATOS PERSONALES */}
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-700 block mb-3">
-              1. Datos de Identidad y Contacto
-            </span>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mb-4 flex items-center gap-2">
+              <User className="h-4 w-4 text-green-600" />
+
+              <h3 className="text-sm font-semibold text-stone-900">
+                Datos personales
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* NOMBRE */}
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                <label className="mb-2 block text-sm font-medium text-stone-700">
                   Nombre
                 </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
-                  <input
-                    name="nombre"
-                    value={form.nombre}
-                    onChange={onFormChange}
-                    placeholder="Carlos"
-                    required
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/40 pl-9 pr-3.5 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:outline-none transition"
-                  />
-                </div>
+
+                <input
+                  type="text"
+                  name="nombre"
+                  value={form.nombre}
+                  onChange={onFormChange}
+                  placeholder="Nombre"
+                  required
+                  className="w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-green-500 focus:bg-white"
+                />
               </div>
 
+              {/* APELLIDO */}
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
+                <label className="mb-2 block text-sm font-medium text-stone-700">
                   Apellido
                 </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
-                  <input
-                    name="apellido"
-                    value={form.apellido}
-                    onChange={onFormChange}
-                    placeholder="Ruiz"
-                    required
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/40 pl-9 pr-3.5 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:outline-none transition"
-                  />
-                </div>
+
+                <input
+                  type="text"
+                  name="apellido"
+                  value={form.apellido}
+                  onChange={onFormChange}
+                  placeholder="Apellido"
+                  required
+                  className="w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-green-500 focus:bg-white"
+                />
               </div>
 
+              {/* DNI */}
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                  DNI (8 dígitos)
+                <label className="mb-2 block text-sm font-medium text-stone-700">
+                  DNI
                 </label>
+
                 <div className="relative">
-                  <IdCard className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
+                  <IdCard className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+
                   <input
+                    type="text"
                     name="dni"
-                    maxLength={8}
-                    pattern="\d{8}"
                     value={form.dni}
-                    onChange={(e) => {
-                      const next = e.target.value.replace(/\D/g, "");
-                      onFormChange({
-                        target: { name: "dni", value: next },
-                      } as React.ChangeEvent<HTMLInputElement>);
-                    }}
-                    placeholder="40123456"
+                    onChange={onFormChange}
+                    placeholder="Ej: 40123456"
                     required
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/40 pl-9 pr-3.5 py-2 text-sm font-mono text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:outline-none transition"
+                    className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pl-10 pr-4 text-sm text-stone-900 outline-none transition focus:border-green-500 focus:bg-white"
                   />
                 </div>
               </div>
 
+              {/* TELEFONO */}
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                  Teléfono Celular
+                <label className="mb-2 block text-sm font-medium text-stone-700">
+                  Teléfono
                 </label>
+
                 <div className="relative">
-                  <Phone className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
+                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+
                   <input
+                    type="tel"
                     name="telefono"
                     value={form.telefono}
                     onChange={onFormChange}
-                    placeholder="381-1234567"
-                    required
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/40 pl-9 pr-3.5 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:outline-none transition"
+                    placeholder="Ej: 3815123456"
+                    className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pl-10 pr-4 text-sm text-stone-900 outline-none transition focus:border-green-500 focus:bg-white"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-stone-100">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-700 block mb-3">
-              2. Plan y Cuota Inicial
-            </span>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* MEMBRESÍA */}
+          <div className="border-t border-stone-200 pt-6">
+            <div className="mb-4 flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-green-400" />
+
+              <h3 className="text-sm font-semibold text-stone-900">Membresía</h3>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {/* SELECT MEMBRESIA */}
               <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                  Tipo de Membresía
+                <label className="mb-2 block text-sm font-medium text-stone-700">
+                  Seleccionar membresía
                 </label>
-                <div className="relative">
-                  <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
-                  <select
-                    name="plan"
-                    value={form.plan}
-                    onChange={onFormChange}
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/40 pl-9 pr-3.5 py-2 text-sm text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none transition cursor-pointer"
-                  >
-                    <option value="mensual">Mensual (30 días)</option>
-                    <option value="trimestral">Trimestral (90 días)</option>
-                    <option value="semestral">Semestral (180 días)</option>
-                    <option value="anual">Anual (365 días)</option>
-                  </select>
-                </div>
+
+                <select
+                  name="membresia"
+                  value={form.membresia}
+                  onChange={onFormChange}
+                  required
+                  className="w-full rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-green-500 focus:bg-white"
+                >
+                  <option value="">Seleccionar membresía</option>
+
+                  {membresias
+                    .filter((membresia) => membresia.activa)
+                    .map((membresia) => (
+                      <option key={membresia._id} value={membresia._id}>
+                        {membresia.nombre} — {formatearPrecio(membresia.precio)}{" "}
+                        — {membresia.duracionDias} días
+                      </option>
+                    ))}
+                </select>
+
+                {membresias.length === 0 && (
+                  <div className="mt-2 flex items-center gap-2 text-xs text-yellow-400">
+                    <AlertCircle className="h-4 w-4" />
+
+                    <span>No hay membresías disponibles.</span>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-stone-700 mb-1.5">
-                  Monto Cobrado ($ ARS)
-                </label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
-                  <input
-                    type="number"
-                    name="pagoMensual"
-                    value={form.pagoMensual}
-                    onChange={onFormChange}
-                    className="w-full rounded-xl border border-stone-200 bg-stone-50/40 pl-9 pr-3.5 py-2 text-sm font-mono text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none transition"
-                  />
-                </div>
-              </div>
+              {/* INFORMACION DE MEMBRESIA */}
+              <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+                {membresiaSeleccionada ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-stone-500">Membresía</span>
 
-              <div className="flex items-center p-3 rounded-xl bg-amber-50/70 border border-amber-200/70 text-xs text-amber-800 leading-relaxed">
-                <span>
-                  La fecha de inicio y de vencimiento se calculan
-                  automáticamente al registrar el socio.
-                </span>
+                      <span className="text-sm font-medium text-stone-900">
+                        {membresiaSeleccionada.nombre}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-stone-500">Precio</span>
+
+                      <span className="text-sm font-semibold text-green-400">
+                        {formatearPrecio(membresiaSeleccionada.precio)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-stone-500">Duración</span>
+
+                      <span className="text-sm text-stone-900">
+                        {membresiaSeleccionada.duracionDias} días
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex h-full items-center gap-3 text-sm text-stone-500">
+                    <CreditCard className="h-5 w-5" />
+
+                    <span>Selecciona una membresía para ver sus detalles.</span>
+                  </div>
+                )}
               </div>
+            </div>
+
+            <div className="mt-4 flex items-start gap-2 rounded-xl border border-blue-500/10 bg-blue-500/5 p-3">
+              <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
+
+              <p className="text-xs leading-relaxed text-stone-500">
+                La fecha de inicio y vencimiento se calcularán automáticamente
+                según la duración de la membresía seleccionada.
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-100">
+          {/* BOTONES */}
+          <div className="flex flex-col-reverse gap-3 border-t border-stone-200 pt-6 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={onFormReset}
-              className="px-4 py-2 text-xs font-semibold text-stone-500 hover:text-stone-800 transition"
+              className="rounded-xl border border-stone-200 bg-stone-50 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100"
             >
-              Restablecer
+              Limpiar
             </button>
+
             <button
               type="submit"
-              className="inline-flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-600 px-6 py-2.5 text-sm font-bold text-stone-950 transition shadow-xs active:scale-95 cursor-pointer"
+              disabled={membresias.length === 0}
+              className="flex items-center justify-center gap-2 rounded-xl bg-green-500 px-5 py-3 text-sm font-semibold text-black transition hover:bg-green-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Plus className="h-4 w-4" />
-              <span>Guardar Socio</span>
+              Registrar Socio
             </button>
           </div>
         </form>
       </div>
 
-      <div className="rounded-2xl border border-stone-200 bg-white shadow-xs overflow-hidden">
-        <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between border-b border-stone-200 bg-stone-50/40">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
-            <input
-              type="text"
-              placeholder="Buscar por socio, apellido o DNI..."
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full rounded-xl border border-stone-300 bg-white pl-9 pr-4 py-2 text-sm text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:outline-none transition"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-50 transition">
-              <Filter className="h-3.5 w-3.5 text-stone-500" />
-              <span>Filtrar</span>
-            </button>
-          </div>
+      {/* TABLA DE SOCIOS */}
+      <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xs">
+        <div className="border-b border-stone-200 px-6 py-5">
+          <h2 className="text-lg font-semibold text-stone-900">
+            Socios registrados
+          </h2>
+
+          <p className="mt-1 text-sm text-stone-500">
+            Listado de socios del gimnasio.
+          </p>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-sm">
+          <table className="w-full min-w-225">
             <thead>
-              <tr className="border-b border-stone-200 bg-stone-50 text-[11px] font-bold uppercase tracking-wider text-stone-500">
-                <th className="py-3.5 pl-6 pr-4">Socio</th>
-                <th className="px-4 py-3.5">Documento (DNI)</th>
-                <th className="px-4 py-3.5">Plan</th>
-                <th className="px-4 py-3.5">Estado</th>
-                <th className="px-4 py-3.5">Vencimiento</th>
-                <th className="py-3.5 pl-4 pr-6 text-right">Acciones</th>
+              <tr className="border-b border-stone-200 bg-stone-50">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  Socio
+                </th>
+
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  DNI
+                </th>
+
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  Membresía
+                </th>
+
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  Estado
+                </th>
+
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  Vencimiento
+                </th>
+
+                <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-stone-500">
+                  Acciones
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100 bg-white">
-              {filteredSocios.map((socio) => {
-                const initials = socio.nombre
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase();
 
-                return (
+            <tbody>
+              {sociosFiltrados.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <User className="mb-3 h-10 w-10 text-stone-300" />
+
+                      <p className="text-sm font-medium text-stone-500">
+                        No se encontraron socios
+                      </p>
+
+                      <p className="mt-1 text-xs text-stone-400">
+                        Intenta modificar la búsqueda.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                sociosFiltrados.map((socio) => (
                   <tr
                     key={socio.dni}
-                    className="hover:bg-amber-50/20 transition-colors group"
+                    className="border-b border-stone-100 transition hover:bg-stone-50"
                   >
-                    <td className="py-4 pl-6 pr-4">
+                    {/* SOCIO */}
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-xs font-bold text-amber-800 font-mono">
-                          {initials}
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-500/10">
+                          <User className="h-4 w-4 text-green-400" />
                         </div>
+
                         <div>
-                          <span className="font-semibold text-stone-900 block leading-tight">
-                            {socio.nombre}
-                          </span>
-                          <span className="text-[11px] text-stone-400">
-                            Registrado
-                          </span>
+                          <p className="text-sm font-medium text-stone-900">
+                            {socio.nombre} {socio.apellido}
+                          </p>
+
+                          {socio.telefono && (
+                            <p className="text-xs text-stone-500">
+                              {socio.telefono}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 font-mono text-xs font-medium text-stone-700">
-                      {socio.dni}
+
+                    {/* DNI */}
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-stone-700">{socio.dni}</span>
                     </td>
-                    <td className="px-4 py-4">
-                      <span className="inline-block rounded-md border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-semibold text-stone-800">
-                        {socio.plan}
+
+                    {/* MEMBRESIA */}
+                    <td className="px-6 py-4">
+                      <span className="rounded-lg bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-400">
+                        {socio.membresia}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
+
+                    {/* ESTADO */}
+                    <td className="px-6 py-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
                           socio.estado === "Activo"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            ? "bg-green-500/10 text-green-400"
                             : socio.estado === "Suspendido"
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : "bg-rose-50 text-rose-700 border border-rose-200"
+                              ? "bg-yellow-500/10 text-yellow-400"
+                              : "bg-red-500/10 text-red-400"
                         }`}
                       >
-                        {socio.estado === "Activo" ? (
-                          <UserCheck className="h-3 w-3" />
-                        ) : (
-                          <AlertCircle className="h-3 w-3" />
-                        )}
-                        <span>{socio.estado}</span>
+                        {socio.estado}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-1.5 text-xs font-mono text-stone-700">
-                        <Calendar className="h-3.5 w-3.5 text-stone-400" />
-                        <span>{socio.vencimiento}</span>
+
+                    {/* VENCIMIENTO */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-stone-700">
+                        <Calendar className="h-4 w-4 text-stone-400" />
+
+                        {socio.vencimiento}
                       </div>
                     </td>
-                    <td className="py-4 pl-4 pr-6 text-right">
-                      <div className="inline-flex items-center gap-1.5">
+
+                    {/* ACCIONES */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
                         <button
+                          type="button"
                           onClick={() => onOpenRenovar(socio)}
-                          title="Renovar membresía (/api/renovar)"
-                          className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50/70 px-2.5 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 transition"
+                          title="Renovar membresía"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400 transition hover:bg-blue-500/20"
                         >
-                          <RefreshCw className="h-3 w-3" />
-                          <span>Renovar</span>
+                          <RefreshCw className="h-4 w-4" />
                         </button>
+
                         <button
-                          title="Eliminar socio"
+                          type="button"
                           onClick={() => onDeleteSocio(socio.dni)}
-                          className="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                          title="Eliminar socio"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10 text-red-400 transition hover:bg-red-500/20"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
                   </tr>
-                );
-              })}
-
-              {filteredSocios.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="px-6 py-12 text-center text-sm text-stone-500"
-                  >
-                    No se encontraron socios que coincidan con la búsqueda.
-                  </td>
-                </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
-
-        <div className="flex items-center justify-between border-t border-stone-200 bg-stone-50/60 px-6 py-3 text-xs text-stone-500">
-          <span>
-            Mostrando {filteredSocios.length} de {socios.length} socios
-            registrados
-          </span>
-          <div className="flex gap-2">
-            <button
-              disabled
-              className="rounded-md border border-stone-200 bg-white px-2.5 py-1 font-medium text-stone-400 opacity-50 cursor-not-allowed"
-            >
-              Anterior
-            </button>
-            <button
-              disabled
-              className="rounded-md border border-stone-200 bg-white px-2.5 py-1 font-medium text-stone-400 opacity-50 cursor-not-allowed"
-            >
-              Siguiente
-            </button>
-          </div>
-        </div>
       </div>
 
+      {/* MODAL RENOVAR */}
       {renovarModal.open && renovarModal.socio && (
         <RenovarSocioModal
           socio={renovarModal.socio}
           form={renovacionForm}
+          membresias={membresias}
           onChange={onRenovacionFormChange}
           onClose={onCloseRenovarModal}
           onSubmit={onRenovarSubmit}
