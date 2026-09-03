@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  Search,
-  Filter,
   Plus,
   User,
   IdCard,
@@ -11,11 +9,12 @@ import {
   Calendar,
   UserCheck,
   AlertCircle,
-  RefreshCw,
-  Trash2,
 } from "lucide-react";
 
 import RenovarSocioModal from "@/componentes/dashboard/modals/RenovarSocioModal";
+import BuscadorSocios from "@/componentes/septions/BuscadorSocios";
+import ListadoSocios from "@/componentes/septions/listadoSocios";
+import type { Socio } from "@/componentes/septions/types";
 
 export type Membresia = {
   _id: string;
@@ -25,17 +24,7 @@ export type Membresia = {
   activa: boolean;
 };
 
-export type Socio = {
-  nombre: string;
-  apellido: string;
-  dni: string;
-  telefono: string;
-  membresia: string;
-  membresiaId?: string;
-  plan: string;
-  estado: "Activo" | "Suspendido" | "Inactivo";
-  vencimiento: string;
-};
+export type { Socio } from "@/componentes/septions/types";
 
 type DashboardSociosProps = {
   socios: Socio[];
@@ -125,7 +114,9 @@ export default function DashboardSocios({
       {/* HEADER */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">Padrón de Socios</h1>
+          <h1 className="text-2xl font-bold text-stone-900">
+            Padrón de Socios
+          </h1>
 
           <p className="mt-1 text-sm text-stone-500">
             Gestión de socios y membresías del gimnasio.
@@ -140,31 +131,6 @@ export default function DashboardSocios({
 
             <p className="text-lg font-bold text-stone-900">{sociosActivos}</p>
           </div>
-        </div>
-      </div>
-
-      {/* BUSCADOR */}
-      <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
-        <div className="flex flex-col gap-3 md:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-stone-400" />
-
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Buscar por nombre, apellido o DNI..."
-              className="w-full rounded-xl border border-stone-200 bg-stone-50 py-3 pl-10 pr-4 text-sm text-stone-900 outline-none transition focus:border-green-500 focus:bg-white"
-            />
-          </div>
-
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 rounded-xl border border-stone-200 bg-stone-50 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100"
-          >
-            <Filter className="h-4 w-4" />
-            Filtrar
-          </button>
         </div>
       </div>
 
@@ -280,7 +246,9 @@ export default function DashboardSocios({
             <div className="mb-4 flex items-center gap-2">
               <CreditCard className="h-4 w-4 text-green-400" />
 
-              <h3 className="text-sm font-semibold text-stone-900">Membresía</h3>
+              <h3 className="text-sm font-semibold text-stone-900">
+                Membresía
+              </h3>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -388,157 +356,13 @@ export default function DashboardSocios({
         </form>
       </div>
 
-      {/* TABLA DE SOCIOS */}
-      <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xs">
-        <div className="border-b border-stone-200 px-6 py-5">
-          <h2 className="text-lg font-semibold text-stone-900">
-            Socios registrados
-          </h2>
+      <BuscadorSocios searchTerm={searchTerm} onSearchChange={onSearchChange} />
 
-          <p className="mt-1 text-sm text-stone-500">
-            Listado de socios del gimnasio.
-          </p>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-225">
-            <thead>
-              <tr className="border-b border-stone-200 bg-stone-50">
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  Socio
-                </th>
-
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  DNI
-                </th>
-
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  Membresía
-                </th>
-
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  Estado
-                </th>
-
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  Vencimiento
-                </th>
-
-                <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-stone-500">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {sociosFiltrados.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <User className="mb-3 h-10 w-10 text-stone-300" />
-
-                      <p className="text-sm font-medium text-stone-500">
-                        No se encontraron socios
-                      </p>
-
-                      <p className="mt-1 text-xs text-stone-400">
-                        Intenta modificar la búsqueda.
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                sociosFiltrados.map((socio) => (
-                  <tr
-                    key={socio.dni}
-                    className="border-b border-stone-100 transition hover:bg-stone-50"
-                  >
-                    {/* SOCIO */}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-500/10">
-                          <User className="h-4 w-4 text-green-400" />
-                        </div>
-
-                        <div>
-                          <p className="text-sm font-medium text-stone-900">
-                            {socio.nombre} {socio.apellido}
-                          </p>
-
-                          {socio.telefono && (
-                            <p className="text-xs text-stone-500">
-                              {socio.telefono}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* DNI */}
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-stone-700">{socio.dni}</span>
-                    </td>
-
-                    {/* MEMBRESIA */}
-                    <td className="px-6 py-4">
-                      <span className="rounded-lg bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-400">
-                        {socio.membresia}
-                      </span>
-                    </td>
-
-                    {/* ESTADO */}
-                    <td className="px-6 py-4">
-                      <span
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium ${
-                          socio.estado === "Activo"
-                            ? "bg-green-500/10 text-green-400"
-                            : socio.estado === "Suspendido"
-                              ? "bg-yellow-500/10 text-yellow-400"
-                              : "bg-red-500/10 text-red-400"
-                        }`}
-                      >
-                        {socio.estado}
-                      </span>
-                    </td>
-
-                    {/* VENCIMIENTO */}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-sm text-stone-700">
-                        <Calendar className="h-4 w-4 text-stone-400" />
-
-                        {socio.vencimiento}
-                      </div>
-                    </td>
-
-                    {/* ACCIONES */}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onOpenRenovar(socio)}
-                          title="Renovar membresía"
-                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400 transition hover:bg-blue-500/20"
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => onDeleteSocio(socio.dni)}
-                          title="Eliminar socio"
-                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-500/10 text-red-400 transition hover:bg-red-500/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <ListadoSocios
+        sociosFiltrados={sociosFiltrados}
+        onOpenRenovar={onOpenRenovar}
+        onDeleteSocio={onDeleteSocio}
+      />
 
       {/* MODAL RENOVAR */}
       {renovarModal.open && renovarModal.socio && (
