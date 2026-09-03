@@ -91,6 +91,7 @@ export default function DashboardSocios({
   onCloseRenovarModal,
   onRenovarSubmit,
 }: DashboardSociosProps) {
+  
   const sociosFiltrados = socios.filter((socio) => {
     const termino = searchTerm.toLowerCase().trim();
 

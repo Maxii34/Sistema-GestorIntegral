@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Calendar, RefreshCw, Trash2 } from "lucide-react";
+import { User, Calendar, RefreshCw, Trash2, SearchX } from "lucide-react";
 import type { Socio } from "./types";
 
 type ListadoSociosProps = {
@@ -53,14 +53,20 @@ export default function ListadoSocios({
           <tbody>
             {sociosFiltrados.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center">
+                <td colSpan={6} className="px-6 py-16 text-center">
                   <div className="flex flex-col items-center justify-center">
-                    <User className="mb-3 h-10 w-10 text-stone-300" />
-                    <p className="text-sm font-medium text-stone-500">
+                    {/* Contenedor del ícono con fondo y anillo decorativo */}
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-stone-100 ring-8 ring-stone-50/50">
+                      <SearchX className="h-8 w-8 text-stone-400" />
+                    </div>
+
+                    {/* Textos con mejor jerarquía y contraste */}
+                    <h3 className="text-sm font-semibold text-stone-900">
                       No se encontraron socios
-                    </p>
-                    <p className="mt-1 text-xs text-stone-400">
-                      Intenta modificar la búsqueda.
+                    </h3>
+                    <p className="mt-1 max-w-sm text-sm text-stone-500">
+                      No hay resultados que coincidan con tu búsqueda. Intenta
+                      probar con otros términos.
                     </p>
                   </div>
                 </td>

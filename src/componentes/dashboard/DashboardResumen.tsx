@@ -2,6 +2,7 @@ import {
   Users,
   UserCheck,
   Clock,
+  type LucideIcon,
 } from "lucide-react";
 
 type DashboardResumenProps = {
@@ -9,9 +10,10 @@ type DashboardResumenProps = {
     label: string;
     value: string;
     detail: string;
-    icon: typeof Users;
+    icon: LucideIcon;
     tone: string;
   }>;
+
   recentEntries: Array<{
     nombre: string;
     dni: string;

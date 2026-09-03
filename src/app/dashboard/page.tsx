@@ -1,11 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import DashboardSidebar from "@/componentes/dashboard/DashboardSidebar";
 import DashboardResumen from "@/componentes/dashboard/DashboardResumen";
-import DashboardSocios, { type Membresia, type Socio } from "@/componentes/dashboard/DashboardSocios";
+import DashboardSocios, {
+  type Membresia,
+  type Socio,
+} from "@/componentes/dashboard/DashboardSocios";
 import { DashboardIngresos } from "@/componentes/dashboard/DashboardExtras";
 import { DashboardConfiguracion } from "@/componentes/dashboard/DashboardConfig";
 import { DashboardMembresias } from "@/componentes/dashboard/DashboardMembresias";
@@ -27,27 +36,49 @@ const toEstado = (value?: string | boolean | null): Socio["estado"] => {
   return "Activo";
 };
 
-const toSocio = (raw: Record<string, unknown>): Socio => {
+const getMembresiaId = (value: unknown) => {
+  if (typeof value === "string" || typeof value === "number")
+    return String(value);
+  if (value && typeof value === "object") {
+    const objectValue = value as Record<string, unknown>;
+    return String(objectValue._id ?? objectValue.id ?? objectValue.$oid ?? "");
+  }
+  return "";
+};
+
+const toSocio = (
+  raw: Record<string, unknown>,
+  membresias: Membresia[],
+): Socio => {
   const nombre = String(raw.nombre ?? "");
   const apellido = String(raw.apellido ?? "");
-  const nombreCompleto = [nombre, apellido].filter(Boolean).join(" ") || "Socio sin nombre";
+  const nombreCompleto =
+    [nombre, apellido].filter(Boolean).join(" ") || "Socio sin nombre";
   const fecha = String(raw.fechaVencimiento ?? raw.vencimiento ?? "-");
   const formatearFecha = (value: string) => {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    return date.toLocaleDateString("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
-  const membresiaRaw = raw.membresia ?? raw.membrecia;
-  const membresia = typeof membresiaRaw === "object" && membresiaRaw !== null
-    ? membresiaRaw as Record<string, unknown>
-    : null;
+  const membresiaRaw = raw.membresia ?? raw.membrecia ?? raw.membresiaId;
+  const membresia =
+    typeof membresiaRaw === "object" && membresiaRaw !== null
+      ? (membresiaRaw as Record<string, unknown>)
+      : null;
+  const membresiaId = getMembresiaId(membresiaRaw);
+  const membresiaRelacionada = membresias.find(
+    (item) => item._id === membresiaId,
+  );
   const membresiaNombre = membresia
-    ? String(membresia.nombre ?? "Sin membresía")
-    : String(membresiaRaw ?? "Sin membresía");
-  const membresiaId = membresia
-    ? String(membresia._id ?? membresia.id ?? "")
-    : membresiaNombre;
+    ? String(
+        membresia.nombre ?? membresiaRelacionada?.nombre ?? "Sin membresía",
+      )
+    : (membresiaRelacionada?.nombre ?? "Sin membresía");
 
   return {
     nombre: nombreCompleto,
@@ -57,7 +88,13 @@ const toSocio = (raw: Record<string, unknown>): Socio => {
     membresia: membresiaNombre,
     membresiaId,
     plan: membresiaNombre,
-    estado: toEstado(String(raw.estado ?? raw.status ?? (raw.activo === false ? "Inactivo" : "Activo"))),
+    estado: toEstado(
+      String(
+        raw.estado ??
+          raw.status ??
+          (raw.activo === false ? "Inactivo" : "Activo"),
+      ),
+    ),
     vencimiento: formatearFecha(fecha),
   };
 };
@@ -70,7 +107,9 @@ export default function DashboardPage() {
   const [membresias, setMembresias] = useState<Membresia[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [resumen, setResumen] = useState<Record<string, unknown>>({});
-  const [recentEntries, setRecentEntries] = useState<Array<{ nombre: string; dni: string; ingreso: string; estado: string }>>([]);
+  const [recentEntries, setRecentEntries] = useState<
+    Array<{ nombre: string; dni: string; ingreso: string; estado: string }>
+  >([]);
   const [sociosError, setSociosError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
@@ -81,7 +120,10 @@ export default function DashboardPage() {
     membresia: "",
   });
 
-  const [renovarModal, setRenovarModal] = useState<{ open: boolean; socio: Socio | null }>({
+  const [renovarModal, setRenovarModal] = useState<{
+    open: boolean;
+    socio: Socio | null;
+  }>({
     open: false,
     socio: null,
   });
@@ -126,19 +168,28 @@ export default function DashboardPage() {
     ? resumen.sociosPorEstado
     : [];
   const activosDesdeResumen = sociosPorEstado.find(
-    (item) => typeof item === "object" && item !== null && String(item._id).toLowerCase() === "activo",
+    (item) =>
+      typeof item === "object" &&
+      item !== null &&
+      String(item._id).toLowerCase() === "activo",
   );
   const ingresosMesActual =
-    typeof resumen.ingresosMesActual === "object" && resumen.ingresosMesActual !== null
-      ? resumen.ingresosMesActual as Record<string, unknown>
+    typeof resumen.ingresosMesActual === "object" &&
+    resumen.ingresosMesActual !== null
+      ? (resumen.ingresosMesActual as Record<string, unknown>)
       : {};
   const planesDesdeResumen = Array.isArray(resumen.distribucionPlanes)
     ? resumen.distribucionPlanes
-        .filter((plan): plan is Record<string, unknown> => typeof plan === "object" && plan !== null)
+        .filter(
+          (plan): plan is Record<string, unknown> =>
+            typeof plan === "object" && plan !== null,
+        )
         .map((plan) => ({
           nombre: String(plan._id ?? "Sin plan"),
           total: Number(plan.total ?? 0),
-          porcentaje: Math.round((Number(plan.total ?? 0) / (socios.length || 1)) * 100),
+          porcentaje: Math.round(
+            (Number(plan.total ?? 0) / (socios.length || 1)) * 100,
+          ),
         }))
     : [];
 
@@ -146,10 +197,47 @@ export default function DashboardPage() {
     `$${value.toLocaleString("es-AR")}`;
 
   const cards = [
-    { label: "Socios activos", value: String(activosDesdeResumen && typeof activosDesdeResumen === "object" && "total" in activosDesdeResumen ? activosDesdeResumen.total : sociosActivos), detail: "Datos del padrón", icon: Users, tone: "amber" },
-    { label: "Ingresos del mes", value: formatearMoneda(Number(ingresosMesActual.total ?? obtenerNumero("ingresosMes", "totalMes", "recaudacionMes"))), detail: "Datos del resumen", icon: DollarSign, tone: "emerald" },
-    { label: "Membresías vencidas", value: String(obtenerNumero("membresiasVencidas", "vencidos", "usuariosVencidos")), detail: "Datos del resumen", icon: AlertCircle, tone: "rose" },
-    { label: "Ingresos hoy", value: String(obtenerNumero("ingresosHoy", "ingresosDia", "accesosHoy")), detail: "Datos del resumen", icon: DoorOpen, tone: "sky" },
+    {
+      label: "Socios activos",
+      value: String(
+        activosDesdeResumen &&
+          typeof activosDesdeResumen === "object" &&
+          "total" in activosDesdeResumen
+          ? activosDesdeResumen.total
+          : sociosActivos,
+      ),
+      detail: "Datos del padrón",
+      icon: Users,
+      tone: "amber",
+    },
+    {
+      label: "Ingresos del mes",
+      value: formatearMoneda(
+        Number(
+          ingresosMesActual.total ??
+            obtenerNumero("ingresosMes", "totalMes", "recaudacionMes"),
+        ),
+      ),
+      detail: "Datos del resumen",
+      icon: DollarSign,
+      tone: "emerald",
+    },
+    {
+      label: "Membresías vencidas",
+      value: String(
+        obtenerNumero("membresiasVencidas", "vencidos", "usuariosVencidos"),
+      ),
+      detail: "Datos del resumen",
+      icon: AlertCircle,
+      tone: "rose",
+    },
+    {
+      label: "Ingresos hoy",
+      value: String(obtenerNumero("ingresosHoy", "ingresosDia", "accesosHoy")),
+      detail: "Datos del resumen",
+      icon: DoorOpen,
+      tone: "sky",
+    },
   ];
 
   const cargarResumen = async () => {
@@ -157,47 +245,62 @@ export default function DashboardPage() {
       const token = localStorage.getItem("token");
       setResumen(await getResumenDashboard(token));
       const ingresos = await getDetalleIngresosHoy(token);
-      setRecentEntries(ingresos.map((ingreso) => {
-        const socio = typeof ingreso.usuarioId === "object" && ingreso.usuarioId !== null
-          ? ingreso.usuarioId as Record<string, unknown>
-          : {};
-        const fecha = new Date(String(ingreso.fechaIngreso ?? ""));
-        return {
-          nombre: `${String(socio.nombre ?? "Socio")} ${String(socio.apellido ?? "")}`.trim(),
-          dni: String(ingreso.dni ?? ""),
-          ingreso: Number.isNaN(fecha.getTime()) ? "-" : fecha.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
-          estado: String(socio.estado ?? "activo").toLowerCase() === "activo" ? "Activo" : "Inactivo",
-        };
-      }));
+      setRecentEntries(
+        ingresos.map((ingreso) => {
+          const socio =
+            typeof ingreso.usuarioId === "object" && ingreso.usuarioId !== null
+              ? (ingreso.usuarioId as Record<string, unknown>)
+              : {};
+          const fecha = new Date(String(ingreso.fechaIngreso ?? ""));
+          return {
+            nombre:
+              `${String(socio.nombre ?? "Socio")} ${String(socio.apellido ?? "")}`.trim(),
+            dni: String(ingreso.dni ?? ""),
+            ingreso: Number.isNaN(fecha.getTime())
+              ? "-"
+              : fecha.toLocaleTimeString("es-AR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+            estado:
+              String(socio.estado ?? "activo").toLowerCase() === "activo"
+                ? "Activo"
+                : "Inactivo",
+          };
+        }),
+      );
     } catch (error) {
-      setSociosError(error instanceof Error ? error.message : "No se pudo cargar el resumen.");
+      setSociosError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cargar el resumen.",
+      );
     }
   };
 
   const cargarSocios = async () => {
     try {
       const token = localStorage.getItem("token");
-      const data = await getUsuarios(token);
-      setSocios(data.map(toSocio));
-      setSociosError(null);
-    } catch (error) {
-      setSociosError(error instanceof Error ? error.message : "No se pudieron cargar los socios.");
-    }
-  };
-
-  const cargarMembresias = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const data = await getMembresias(token);
-      setMembresias(data.map((raw) => ({
+      const [data, membresiasData] = await Promise.all([
+        getUsuarios(token),
+        getMembresias(token),
+      ]);
+      const membresiasCargadas = membresiasData.map((raw) => ({
         _id: String(raw._id ?? raw.id ?? ""),
         nombre: String(raw.nombre ?? "Membresía sin nombre"),
         precio: Number(raw.precio ?? 0),
         duracionDias: Number(raw.duracionDias ?? raw.duracion ?? 0),
         activa: raw.activa !== false,
-      })));
+      }));
+      setMembresias(membresiasCargadas);
+      setSocios(data.map((raw) => toSocio(raw, membresiasCargadas)));
+      setSociosError(null);
     } catch (error) {
-      setSociosError(error instanceof Error ? error.message : "No se pudieron cargar las membresías.");
+      setSociosError(
+        error instanceof Error
+          ? error.message
+          : "No se pudieron cargar los socios.",
+      );
     }
   };
 
@@ -210,13 +313,14 @@ export default function DashboardPage() {
     const timeoutId = window.setTimeout(() => {
       void cargarSocios();
       void cargarResumen();
-      void cargarMembresias();
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
   }, [router]);
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = event.target;
     setForm((prev) => ({
       ...prev,
@@ -227,21 +331,35 @@ export default function DashboardPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!form.nombre || !form.apellido || form.dni.length !== 8 || !form.telefono) {
+    if (
+      !form.nombre ||
+      !form.apellido ||
+      form.dni.length !== 8 ||
+      !form.telefono
+    ) {
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
-      await crearUsuario({
-        nombre: form.nombre,
-        apellido: form.apellido,
-        dni: form.dni,
-        telefono: form.telefono,
-        membresia: form.membresia,
-      }, token);
+      await crearUsuario(
+        {
+          nombre: form.nombre,
+          apellido: form.apellido,
+          dni: form.dni,
+          telefono: form.telefono,
+          membresia: form.membresia,
+        },
+        token,
+      );
       await cargarSocios();
-      await Swal.fire({ icon: "success", title: "Socio registrado", text: "El socio fue agregado correctamente.", timer: 1800, showConfirmButton: false });
+      await Swal.fire({
+        icon: "success",
+        title: "Socio registrado",
+        text: "El socio fue agregado correctamente.",
+        timer: 1800,
+        showConfirmButton: false,
+      });
       setForm({
         nombre: "",
         apellido: "",
@@ -250,8 +368,16 @@ export default function DashboardPage() {
         membresia: "",
       });
     } catch (error) {
-      await Swal.fire({ icon: "error", title: "No se pudo registrar", text: error instanceof Error ? error.message : "Error del servidor." });
-      setSociosError(error instanceof Error ? error.message : "No se pudo registrar el socio.");
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo registrar",
+        text: error instanceof Error ? error.message : "Error del servidor.",
+      });
+      setSociosError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo registrar el socio.",
+      );
     }
   };
 
@@ -270,10 +396,23 @@ export default function DashboardPage() {
         const token = localStorage.getItem("token");
         await eliminarUsuario(dni, token);
         await cargarSocios();
-        await Swal.fire({ icon: "success", title: "Socio eliminado", timer: 1600, showConfirmButton: false });
+        await Swal.fire({
+          icon: "success",
+          title: "Socio eliminado",
+          timer: 1600,
+          showConfirmButton: false,
+        });
       } catch (error) {
-        await Swal.fire({ icon: "error", title: "No se pudo eliminar", text: error instanceof Error ? error.message : "Error del servidor." });
-        setSociosError(error instanceof Error ? error.message : "No se pudo eliminar el socio.");
+        await Swal.fire({
+          icon: "error",
+          title: "No se pudo eliminar",
+          text: error instanceof Error ? error.message : "Error del servidor.",
+        });
+        setSociosError(
+          error instanceof Error
+            ? error.message
+            : "No se pudo eliminar el socio.",
+        );
       }
     }
   };
@@ -293,16 +432,32 @@ export default function DashboardPage() {
       );
       await cargarSocios();
       setRenovarModal({ open: false, socio: null });
-      await Swal.fire({ icon: "success", title: "Renovación confirmada", text: "La membresía fue actualizada.", timer: 1800, showConfirmButton: false });
+      await Swal.fire({
+        icon: "success",
+        title: "Renovación confirmada",
+        text: "La membresía fue actualizada.",
+        timer: 1800,
+        showConfirmButton: false,
+      });
     } catch (error) {
-      await Swal.fire({ icon: "error", title: "No se pudo renovar", text: error instanceof Error ? error.message : "Error del servidor." });
-      setSociosError(error instanceof Error ? error.message : "No se pudo renovar la membresía.");
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo renovar",
+        text: error instanceof Error ? error.message : "Error del servidor.",
+      });
+      setSociosError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo renovar la membresía.",
+      );
     }
   };
 
   if (!authReady) return null;
 
-  const handleRenovacionChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleRenovacionChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = event.target;
     setRenovacionForm((prev) => ({
       ...prev,
@@ -316,7 +471,9 @@ export default function DashboardPage() {
         <DashboardResumen
           cards={cards}
           recentEntries={recentEntries}
-          plansSummary={planesDesdeResumen.length ? planesDesdeResumen : plansSummary}
+          plansSummary={
+            planesDesdeResumen.length ? planesDesdeResumen : plansSummary
+          }
           sociosActivos={sociosActivos}
           socios={socios}
           onOpenIngresos={() => setActiveSection("ingresos")}
@@ -360,7 +517,9 @@ export default function DashboardPage() {
             membresias={membresias}
             onRenovacionFormChange={handleRenovacionChange}
             renovarModal={renovarModal}
-            onCloseRenovarModal={() => setRenovarModal({ open: false, socio: null })}
+            onCloseRenovarModal={() =>
+              setRenovarModal({ open: false, socio: null })
+            }
             onRenovarSubmit={handleRenovarSubmit}
           />
         </div>
@@ -382,7 +541,10 @@ export default function DashboardPage() {
     <main className="min-h-screen bg-[#f8f9fa] text-stone-800 px-4 py-8 sm:px-6 lg:px-8 antialiased">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-          <DashboardSidebar activeSection={activeSection} onSelectSection={setActiveSection} />
+          <DashboardSidebar
+            activeSection={activeSection}
+            onSelectSection={setActiveSection}
+          />
           <section className="min-w-0">{renderContent()}</section>
         </div>
       </div>
