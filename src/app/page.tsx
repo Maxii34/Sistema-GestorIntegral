@@ -11,6 +11,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { getMembresiasActivas, getResumenDashboard } from "@/lib/api";
+import MembershipCarousel from "@/componentes/dashboard/MembershipCarousel";
 
 export default async function Home() {
   const [resumen, membresias] = await Promise.allSettled([
@@ -246,48 +247,7 @@ export default async function Home() {
             </h2>
           </div>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {planes.map((plan) => (
-            <div
-              key={plan.id}
-              className="relative flex flex-col justify-between rounded-2xl border border-stone-800/80 bg-[#1c1a17] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-stone-700"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
-                    {plan.nombre}
-                  </span>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${plan.activa ? "text-emerald-400" : "text-stone-500"}`}>
-                    {plan.activa ? "Disponible" : "No disponible"}
-                  </span>
-                </div>
-                <p className="mt-5 text-3xl font-black text-white font-mono">
-                  {plan.precio}
-                </p>
-                <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
-                  {plan.duracionDias} días
-                </p>
-                <p className="mt-3 text-sm text-stone-300 leading-relaxed">
-                  {plan.detalle}
-                </p>
-                {plan.beneficios.length > 0 && (
-                  <ul className="mt-5 space-y-2 border-t border-stone-800/60 pt-4">
-                    {plan.beneficios.map((beneficio, index) => (
-                      <li key={`${plan.id}-${index}`} className="flex gap-2 text-xs text-stone-300">
-                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-amber-400" />
-                        <span>{beneficio}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div className="mt-8 border-t border-stone-800/60 pt-6 text-xs text-stone-500">
-                {plan.activa ? "Membresía vigente" : "Membresía pausada"}
-              </div>
-            </div>
-          ))}
-        </div>
+        <MembershipCarousel planes={planes} />
       </section>
     </main>
   );
