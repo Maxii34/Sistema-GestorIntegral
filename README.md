@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+<div align="center">
 
-First, run the development server:
+# IronGym
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Panel web para la gestión integral de gimnasios
+
+Controlá socios, membresías, renovaciones, ingresos y vencimientos desde una interfaz administrativa rápida y clara.
+
+![Next.js](https://img.shields.io/badge/Next.js-16.3.3-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19.2.8-61DAFB?logo=react&logoColor=111827)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![ESLint](https://img.shields.io/badge/ESLint-9-4B32C3?logo=eslint&logoColor=white)
+
+</div>
+
+## Descripción
+
+IronGym es una aplicación web para operadores y administradores de gimnasios. El frontend se comunica con una API REST para administrar el padrón de socios, los planes de membresía, las renovaciones y los datos financieros del dashboard.
+
+## Funcionalidades
+
+- Inicio con resumen de actividad y carrusel de membresías disponibles.
+- Inicio de sesión y registro de administradores.
+- Alta, búsqueda, renovación y eliminación de socios.
+- Creación, edición, activación y eliminación de membresías.
+- Resumen de socios activos, ingresos y vencimientos.
+- Historial de altas y renovaciones.
+- Integración con el backend local o desplegado en Vercel.
+
+## Tecnologías
+
+- **Next.js 16** con App Router.
+- **React 19** y TypeScript.
+- **Tailwind CSS 4** para estilos responsivos.
+- **Lucide React** para iconografía.
+- **SweetAlert2** para alertas y notificaciones.
+- **API REST** desarrollada con Node.js, Express y MongoDB.
+
+## Configuración
+
+Creá un archivo `.env.local` en la raíz del proyecto:
+
+```env
+NEXT_PUBLIC_API_URL=https://force-gym-backend.vercel.app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Para trabajar con el backend local:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+La variable `NEXT_PUBLIC_API_URL` debe configurarse también en las variables de entorno del proyecto frontend en Vercel. Después de modificarla, es necesario realizar un nuevo deploy.
 
-## Learn More
+## Instalación y desarrollo
 
-To learn more about Next.js, take a look at the following resources:
+Requisitos: Node.js 20 o superior y npm.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Abrí [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+## Scripts disponibles
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run dev      # Inicia el servidor de desarrollo
+npm run build    # Genera la compilación de producción
+npm run start    # Inicia la aplicación compilada
+npm run lint     # Ejecuta ESLint
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Backend
+
+La API desplegada está disponible en:
+
+**https://force-gym-backend.vercel.app/**
+
+El frontend consume, entre otras, estas rutas:
+
+- `/api/admin/login`
+- `/api/usuarios`
+- `/api/membrecia`
+- `/api/renovar`
+- `/api/stats/dashboard`
+
+## Estructura principal
+
+```text
+src/
+├── app/                 # Páginas y rutas del App Router
+├── componentes/         # Componentes visuales y del dashboard
+└── lib/api/             # Cliente y funciones de comunicación con la API
+```
+
+## Autor
+
+**Maxi Ordoñez** || Desarrollador full stack
+
+Proyecto desarrollado para la gestión operativa de gimnasios.
