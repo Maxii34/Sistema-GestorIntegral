@@ -4,6 +4,7 @@ export type ApiErrorPayload = {
   mensaje?: string;
   message?: string;
   error?: string;
+  errors?: Array<{ msg?: string }>;
 };
 
 export class ApiError extends Error {
@@ -42,10 +43,15 @@ export async function apiRequest<T>(
   const data = await parseJson<T & ApiErrorPayload>(response);
 
   if (!response.ok) {
+    const validationMessage = (data as ApiErrorPayload).errors
+      ?.map((error) => error.msg)
+      .filter(Boolean)
+      .join(" ");
     const message =
       (data as ApiErrorPayload)?.mensaje ??
       (data as ApiErrorPayload)?.message ??
       (data as ApiErrorPayload)?.error ??
+      validationMessage ??
       "No se pudo completar la solicitud.";
 
     throw new ApiError(message, response.status);

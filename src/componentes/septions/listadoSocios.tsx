@@ -85,7 +85,7 @@ export default function ListadoSocios({
                       </div>
                       <div>
                         <p className="text-sm font-medium text-stone-900">
-                          {socio.nombre} {socio.apellido}
+                          {socio.nombre}
                         </p>
                         {socio.telefono && (
                           <p className="text-xs text-stone-500">

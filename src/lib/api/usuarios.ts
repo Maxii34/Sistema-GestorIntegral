@@ -57,7 +57,17 @@ export async function eliminarUsuario(dni: string, token?: string | null) {
   });
 }
 
-export async function renovarUsuario(payload: Record<string, unknown>, token?: string | null) {
+export type RenovarUsuarioPayload = {
+  dni: string;
+  membresia: string;
+  pagoMensual: number;
+  tipoMembresia: string;
+};
+
+export async function renovarUsuario(
+  payload: RenovarUsuarioPayload,
+  token?: string | null,
+) {
   return apiRequest<UsuarioResponse>('/api/renovar', {
     method: 'POST',
     headers: getAuthHeaders(token),

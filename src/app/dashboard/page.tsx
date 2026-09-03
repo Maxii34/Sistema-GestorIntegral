@@ -46,6 +46,18 @@ const getMembresiaId = (value: unknown) => {
   return "";
 };
 
+const getTipoMembresia = (nombre: string, duracionDias: number) => {
+  const nombreNormalizado = nombre.toLowerCase();
+  if (nombreNormalizado.includes("trimestral")) return "trimestral";
+  if (nombreNormalizado.includes("semestral")) return "semestral";
+  if (nombreNormalizado.includes("anual")) return "anual";
+  if (nombreNormalizado.includes("mensual")) return "mensual";
+  if (duracionDias >= 365) return "anual";
+  if (duracionDias >= 180) return "semestral";
+  if (duracionDias >= 90) return "trimestral";
+  return "mensual";
+};
+
 const toSocio = (
   raw: Record<string, unknown>,
   membresias: Membresia[],
@@ -421,12 +433,22 @@ export default function DashboardPage() {
     event.preventDefault();
     if (!renovarModal.socio || !renovacionForm.membresia) return;
 
+    const membresiaSeleccionada = membresias.find(
+      (membresia) => membresia._id === renovacionForm.membresia,
+    );
+    if (!membresiaSeleccionada) return;
+
     try {
       const token = localStorage.getItem("token");
       await renovarUsuario(
         {
           dni: renovarModal.socio.dni,
-          membresia: renovacionForm.membresia,
+          membresia: membresiaSeleccionada._id,
+          pagoMensual: membresiaSeleccionada.precio,
+          tipoMembresia: getTipoMembresia(
+            membresiaSeleccionada.nombre,
+            membresiaSeleccionada.duracionDias,
+          ),
         },
         token,
       );
