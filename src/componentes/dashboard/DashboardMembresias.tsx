@@ -65,7 +65,7 @@ export function DashboardMembresias() {
 
   const cargarPlanes = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const data = await getMembresias(token);
       setPlanes(data.map(toPlan));
       setError(null);
@@ -118,7 +118,7 @@ export function DashboardMembresias() {
       return;
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const payload = {
         nombre: formData.nombre,
         descripcion: formData.descripcion,
@@ -183,7 +183,7 @@ export function DashboardMembresias() {
     if (!confirmacion.isConfirmed) return;
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await actualizarMembresia(
         plan.id,
         {
@@ -237,7 +237,7 @@ export function DashboardMembresias() {
     if (!confirmacion.isConfirmed) return;
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await eliminarMembresia(plan.id, token);
       await cargarPlanes();
 

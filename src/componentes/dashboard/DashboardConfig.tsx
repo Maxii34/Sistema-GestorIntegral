@@ -12,7 +12,7 @@ export function DashboardConfiguracion() {
     setCronResult(null);
     try {
       const token =
-        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        typeof window !== "undefined" ? sessionStorage.getItem("token") : null;
       const data = await verificarVencimientos(token);
       setCronResult(
         `Verificación completada: ${data.usuariosDesactivados ?? 0} socios dados de baja.`,

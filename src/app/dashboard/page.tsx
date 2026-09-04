@@ -254,7 +254,7 @@ export default function DashboardPage() {
 
   const cargarResumen = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       setResumen(await getResumenDashboard(token));
       const ingresos = await getDetalleIngresosHoy(token);
       setRecentEntries(
@@ -292,7 +292,7 @@ export default function DashboardPage() {
 
   const cargarSocios = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const [data, membresiasData] = await Promise.all([
         getUsuarios(token),
         getMembresias(token),
@@ -317,7 +317,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
+    if (!sessionStorage.getItem("token")) {
       router.replace("/login");
       return;
     }
@@ -353,7 +353,7 @@ export default function DashboardPage() {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await crearUsuario(
         {
           nombre: form.nombre,
@@ -407,7 +407,7 @@ export default function DashboardPage() {
     });
     if (confirmacion.isConfirmed) {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         await eliminarUsuario(dni, token);
         window.dispatchEvent(new Event("dashboard-data-change"));
         await cargarSocios();
@@ -443,7 +443,7 @@ export default function DashboardPage() {
     if (!membresiaSeleccionada) return;
 
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await renovarUsuario(
         {
           dni: renovarModal.socio.dni,

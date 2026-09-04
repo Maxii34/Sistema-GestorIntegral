@@ -70,18 +70,17 @@ export default function LoginPage() {
       }
 
       if (data.token) {
-        localStorage.setItem("token", data.token);
+        sessionStorage.setItem("token", data.token);
         if (data.usuario) {
-          localStorage.setItem("usuario", JSON.stringify(data.usuario));
+          sessionStorage.setItem("usuario", JSON.stringify(data.usuario));
         }
         window.dispatchEvent(new Event("auth-change"));
       }
-
+      router.push("/dashboard");
       await Toast.fire({
         icon: "success",
         title: "Sesión iniciada",
       });
-      router.push("/dashboard");
     } catch (err: unknown) {
       const message =
         err instanceof Error

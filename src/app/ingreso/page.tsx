@@ -128,7 +128,7 @@ export default function IngresoPage() {
     setData(null);
 
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token = typeof window !== "undefined" ? sessionStorage.getItem("token") : null;
       const result = await registrarIngreso(dni, token);
       setData(result);
       await Swal.fire({
