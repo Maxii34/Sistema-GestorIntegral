@@ -76,7 +76,14 @@ export default function LoginPage() {
         }
         window.dispatchEvent(new Event("auth-change"));
       }
-      router.push("/dashboard");
+      const destinoSolicitado = new URLSearchParams(window.location.search).get(
+        "redirect",
+      );
+      const destino =
+        destinoSolicitado?.startsWith("/") && !destinoSolicitado.startsWith("//")
+          ? destinoSolicitado
+          : "/dashboard";
+      router.push(destino);
       await Toast.fire({
         icon: "success",
         title: "Sesión iniciada",

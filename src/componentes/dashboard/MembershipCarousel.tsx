@@ -1,9 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import Link from "next/link"; // <-- Importamos Link de Next.js
 
-// Definimos la interfaz para los props (ya que estás usando TypeScript)
 export interface Plan {
   id: string;
   nombre: string;
@@ -24,8 +24,8 @@ export default function MembershipCarousel({ planes }: { planes: Plan[] }) {
     carousel.scrollBy({
       left:
         direccion === "derecha"
-          ? carousel.clientWidth + 24
-          : -(carousel.clientWidth + 24),
+          ? carousel.clientWidth * 0.8
+          : -(carousel.clientWidth * 0.8),
       behavior: "smooth",
     });
   };
@@ -39,77 +39,85 @@ export default function MembershipCarousel({ planes }: { planes: Plan[] }) {
   }
 
   return (
-    <div className="relative">
+    <div className="relative group">
       <button
         type="button"
         onClick={() => desplazar("izquierda")}
         aria-label="Ver membresías anteriores"
-        className="absolute left-2 top-1/2 z-10 block -translate-y-1/2 rounded-full border border-stone-700 bg-stone-900/90 p-2 text-stone-200 shadow-lg transition hover:border-amber-400 hover:text-amber-400"
+        className="absolute -left-2 sm:-left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-stone-700 bg-stone-900/95 text-stone-300 shadow-[0_4px_20px_rgba(0,0,0,0.5)] backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:border-amber-500 hover:text-amber-400 opacity-90 hover:opacity-100"
       >
-        <ChevronLeft className="h-5 w-5" />
+        <ChevronLeft className="h-5 w-5 -ml-0.5" />
       </button>
 
       <div
         ref={carouselRef}
-        className="flex gap-6 overflow-x-auto pb-8 pt-4 snap-x snap-mandatory scroll-smooth scrollbar-none"
+        className="flex gap-5 overflow-x-auto pb-8 pt-4 snap-x snap-mandatory scroll-smooth scrollbar-none px-2 sm:px-4"
       >
         {planes.map((plan) => (
           <article
             key={plan.id}
-            className="relative flex min-w-full shrink-0 snap-center flex-col justify-between rounded-2xl border border-stone-800/80 bg-[#1c1a17] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-stone-700 sm:min-w-80"
+            className="relative flex w-[85vw] max-w-70 shrink-0 snap-center flex-col justify-between rounded-2xl border border-stone-800/60 bg-linear-to-b from-[#211f1c] to-[#161412] p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-500/30 hover:shadow-[0_8px_30px_rgba(245,158,11,0.06)]"
           >
-          <div>
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
-                {plan.nombre}
-              </span>
-              <span
-                className={`text-[10px] font-bold uppercase tracking-wider ${
-                  plan.activa ? "text-emerald-400" : "text-stone-500"
-                }`}
-              >
-                {plan.activa ? "Disponible" : "No disponible"}
-              </span>
-            </div>
-            <p className="mt-5 text-3xl font-black text-white font-mono">
-              {plan.precio}
-            </p>
-            <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-amber-400">
-              {plan.duracionDias} días
-            </p>
-            <p className="mt-3 text-sm text-stone-300 leading-relaxed">
-              {plan.detalle}
-            </p>
-            {plan.beneficios.length > 0 && (
-              <ul className="mt-5 space-y-2 border-t border-stone-800/60 pt-4">
-                {plan.beneficios.map((beneficio, index) => (
-                  <li
-                    key={`${plan.id}-${index}`}
-                    className="flex gap-2 text-xs text-stone-300"
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-amber-400" />
-                    <span>{beneficio}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+            {/* Contenido principal */}
+            <div>
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-stone-200 line-clamp-2">
+                  {plan.nombre}
+                </h3>
+                <span
+                  className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                    plan.activa
+                      ? "border-amber-400/20 bg-amber-400/10 text-amber-400"
+                      : "border-stone-700/50 bg-stone-800/50 text-stone-500"
+                  }`}
+                >
+                  {plan.activa ? "Vigente" : "Pausada"}
+                </span>
+              </div>
 
-          <div className="mt-8 border-t border-stone-800/60 pt-6 text-xs text-stone-500">
-            {plan.activa ? "Membresía vigente" : "Membresía pausada"}
-          </div>
+              <div className="mt-5 flex items-baseline gap-2">
+                <p className="text-3xl font-black tracking-tight text-white font-mono">
+                  {plan.precio} <span className="text-lg">Arg.</span>
+                </p>
+              </div>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-amber-500/90">
+                {plan.duracionDias} días
+              </p>
+
+              <p className="mt-4 text-sm text-stone-400 leading-relaxed line-clamp-3">
+                {plan.detalle}
+              </p>
+
+              {plan.beneficios.length > 0 && (
+                <ul className="mt-6 space-y-3 border-t border-stone-800/60 pt-5">
+                  {plan.beneficios.map((beneficio, index) => (
+                    <li
+                      key={`${plan.id}-${index}`}
+                      className="flex items-start gap-2.5 text-xs text-stone-300"
+                    >
+                      <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+                      <span className="leading-snug">{beneficio}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* BOTÓN DE MODIFICAR (Next.js Link) */}
+            <div className="mt-1 pt-1 relative z-10">
+              <Link
+                href="/dashboard?seccion=membresias"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-stone-800/40 px-4 py-2.5 text-sm font-semibold text-stone-300 transition-all hover:bg-amber-500/10 hover:text-amber-400 active:scale-95"
+              >
+                <Pencil className="h-4 w-4" />
+                <span>Modificar</span>
+              </Link>
+            </div>
+
+            <div className="absolute bottom-0 left-0 h-1 w-full rounded-b-2xl bg-linear-to-r from-transparent via-stone-800/50 to-transparent transition-colors duration-300 group-hover:via-amber-500/20" />
           </article>
         ))}
       </div>
-
-      <button
-        type="button"
-        onClick={() => desplazar("derecha")}
-        aria-label="Ver más membresías"
-        className="absolute right-2 top-1/2 z-10 block -translate-y-1/2 rounded-full border border-stone-700 bg-stone-900/90 p-2 text-stone-200 shadow-lg transition hover:border-amber-400 hover:text-amber-400"
-      >
-        <ChevronRight className="h-5 w-5" />
-      </button>
     </div>
   );
 }
