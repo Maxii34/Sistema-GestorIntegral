@@ -141,7 +141,7 @@ export default async function Home() {
 
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
-                href="/dashboard"
+                href="/dashboard?seccion=socios"
                 className="inline-flex items-center gap-2.5 rounded-full bg-linear-to-r from-amber-400 via-amber-500 to-amber-500 px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-stone-950 shadow-[0_4px_25px_rgba(245,158,11,0.25)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_6px_30px_rgba(245,158,11,0.4)] active:scale-95"
               >
                 <UserPlus className="h-5 w-5" />
