@@ -9,6 +9,8 @@ import {
   Sparkles,
   TrendingUp,
   ShieldCheck,
+  UserPlus,
+  DoorOpen,
 } from "lucide-react";
 import { getMembresiasActivas, getResumenDashboard } from "@/lib/api";
 import MembershipCarousel from "@/componentes/dashboard/MembershipCarousel";
@@ -120,9 +122,16 @@ export default async function Home() {
               <span>IronGym </span>
             </div>
 
-            <h1 className="mt-6 text-4xl font-black uppercase tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.08]">
-              Potenciá tu <span className="text-amber-400">gimnasio</span> con
-              gestión premium.
+            <h1 className="mt-6 text-4xl uppercase tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.08]">
+              <span className="font-black block">
+                Potenciá tu <span className="text-amber-400">gimnasio</span>
+              </span>
+              <span className="mt-2 block text-2xl font-light text-stone-300 sm:text-3xl lg:text-4xl">
+                con gestión{" "}
+                <span className="font-black text-amber-400">
+                  personalizada.
+                </span>
+              </span>
             </h1>
 
             <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-stone-300">
@@ -130,20 +139,22 @@ export default async function Home() {
               planes desde una experiencia rápida y moderna.
             </p>
 
-            {/* Acciones principales */}
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
-                href="/registro"
+                href="/dashboard?seccion=socios"
                 className="inline-flex items-center gap-2.5 rounded-full bg-linear-to-r from-amber-400 via-amber-500 to-amber-500 px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-stone-950 shadow-[0_4px_25px_rgba(245,158,11,0.25)] transition-all duration-200 hover:brightness-110 hover:shadow-[0_6px_30px_rgba(245,158,11,0.4)] active:scale-95"
               >
-                <span>Registrar Administrador</span>
+                <UserPlus className="h-5 w-5" />
+                <span>Registrar Usuarios</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
+
               <Link
-                href="/dashboard"
+                href="/ingreso"
                 className="inline-flex items-center gap-2 rounded-full border border-stone-700/80 bg-stone-900/60 px-7 py-3.5 text-sm font-semibold tracking-wide text-stone-200 backdrop-blur-sm transition-all duration-200 hover:border-amber-400/50 hover:bg-stone-800 hover:text-amber-300 active:scale-95"
               >
-                Ver Dashboard
+                <DoorOpen className="h-5 w-5 shrink-0 text-stone-400 transition-colors duration-200" />
+                <span>Registar Ingresos</span>
               </Link>
             </div>
 

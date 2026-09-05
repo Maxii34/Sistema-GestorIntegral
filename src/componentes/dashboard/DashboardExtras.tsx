@@ -79,7 +79,7 @@ const toPago = (
 
 const getOperadorActual = () => {
   try {
-    const usuarioGuardado = localStorage.getItem("usuario");
+    const usuarioGuardado = sessionStorage.getItem("usuario");
     if (!usuarioGuardado) return "Operador actual";
 
     const usuario = JSON.parse(usuarioGuardado) as Record<string, unknown>;
@@ -99,7 +99,7 @@ export function DashboardIngresos() {
   useEffect(() => {
     const cargarResumen = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const [resumenData, renovacionesData, usuarios, membresias] = await Promise.all([
           getResumenDashboard(token),
           getRenovacionesRecientes(token),

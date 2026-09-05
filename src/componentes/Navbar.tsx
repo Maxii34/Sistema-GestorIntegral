@@ -41,7 +41,7 @@ export default function Navbar() {
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
-    const syncAuth = () => setLoggedIn(Boolean(localStorage.getItem("token")));
+    const syncAuth = () => setLoggedIn(Boolean(sessionStorage.getItem("token")));
 
     syncAuth();
 
@@ -55,7 +55,7 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
 
     try {
       if (token) {
@@ -64,20 +64,18 @@ export default function Navbar() {
     } catch (error) {
       console.error("No se pudo cerrar la sesión en el servidor.", error);
     } finally {
-      localStorage.removeItem("token");
-      localStorage.removeItem("usuario");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("usuario");
 
       setLoggedIn(false);
 
       window.dispatchEvent(new Event("auth-change"));
     }
-
+    router.push("/login");
     await Toast.fire({
       icon: "success",
       title: "Sesión cerrada exitosamente!",
     });
-
-    router.push("/login");
   };
 
   return (
